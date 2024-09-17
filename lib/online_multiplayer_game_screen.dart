@@ -4,7 +4,7 @@ import 'dart:async';
 import 'package:uuid/uuid.dart';
 
 class OnlineMultiplayerGameScreen extends StatefulWidget {
-  const OnlineMultiplayerGameScreen({Key? key}) : super(key: key);
+  const OnlineMultiplayerGameScreen({super.key});
 
   @override
   _OnlineMultiplayerGameScreenState createState() =>
@@ -13,6 +13,7 @@ class OnlineMultiplayerGameScreen extends StatefulWidget {
 
 class _OnlineMultiplayerGameScreenState
     extends State<OnlineMultiplayerGameScreen> {
+  bool _connectionTimedOut = false;
   IO.Socket? socket;
   String roomId = '';
   String playerId = '';
@@ -20,7 +21,6 @@ class _OnlineMultiplayerGameScreenState
   bool isWaiting = false;
   String opponentId = '';
 
-  final int _numPairs = 8;
   late List<int> _numbers;
   late List<bool> _flipped;
   int? _previousIndex;
@@ -29,7 +29,7 @@ class _OnlineMultiplayerGameScreenState
   int _scorePlayer2 = 0;
   int _currentPlayer = 1;
   int _steps = 0;
-  int _totalPairs = 8;
+  final int _totalPairs = 8;
   bool _isGameActive = false;
   bool _isMyTurn = false;
   bool _amIFirstPlayer = false;
@@ -69,6 +69,19 @@ class _OnlineMultiplayerGameScreenState
 
   void connectToServer() {
     print('Attempting to connect to server...');
+    setState(() {
+      isConnected = false;
+      _connectionTimedOut = false;
+    });
+
+    // Set a timer for 5 seconds
+    Timer(const Duration(seconds: 5), () {
+      if (!isConnected) {
+        setState(() {
+          _connectionTimedOut = true;
+        });
+      }
+    });
     // Dispose of the old socket if it exists
     if (socket != null) {
       socket!.dispose();
@@ -291,90 +304,227 @@ class _OnlineMultiplayerGameScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Online Memory Game'),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60),
+        child: AppBar(
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.blueGrey, Colors.grey],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
+          title: const Text(
+            'Online Memory Game',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          centerTitle: true,
+          elevation: 0,
+        ),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (!isConnected)
-              Column(
-                children: [
-                  Text('Connecting to server...'),
-                  ElevatedButton(
-                    onPressed: connectToServer,
-                    child: Text('Retry Connection'),
-                  ),
-                ],
+      body: Container(
+        color: Colors.grey[200],
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (!isConnected) _buildConnectionStatus(),
+                if (isConnected && !_isGameActive) _buildLobbyArea(),
+                if (isConnected && _isGameActive) _buildGameArea(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildConnectionStatus() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text(
+          'Connecting to server...',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 20),
+        if (!_connectionTimedOut)
+          const CircularProgressIndicator()
+        else
+          _buildButton(
+            'Retry Connection',
+            Icons.refresh,
+            Colors.indigo,
+            connectToServer,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildLobbyArea() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildButton(
+          'Create Room',
+          Icons.add,
+          Colors.blueGrey,
+          _createRoom,
+        ),
+        const SizedBox(height: 20),
+        TextField(
+          controller: roomIdController,
+          decoration: const InputDecoration(
+            labelText: 'Room ID',
+            border: OutlineInputBorder(),
+            filled: true,
+            fillColor: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 20),
+        _buildButton(
+          'Join Room',
+          Icons.login,
+          Colors.indigo,
+          _joinRoom,
+        ),
+        if (roomId.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 20),
+            child: Text('Room ID: $roomId',
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ),
+        if (isWaiting)
+          const Padding(
+            padding: EdgeInsets.only(top: 20),
+            child: Text('Waiting for opponent...',
+                style: TextStyle(fontSize: 18, fontStyle: FontStyle.italic)),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildGameArea() {
+    return Expanded(
+      child: Column(
+        children: [
+          _buildInfoRow(),
+          const SizedBox(height: 20),
+          Text(
+            _isMyTurn ? 'Your Turn' : 'Opponent\'s Turn',
+            style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: _isMyTurn ? Colors.green : Colors.red),
+          ),
+          const SizedBox(height: 20),
+          Expanded(
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                childAspectRatio: 1,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
               ),
-            if (isConnected && !_isGameActive)
-              Column(
-                children: [
-                  ElevatedButton(
-                    onPressed: _createRoom,
-                    child: Text('Create Room'),
-                  ),
-                  SizedBox(height: 20),
-                  TextField(
-                    controller: roomIdController,
-                    decoration: InputDecoration(labelText: 'Room ID'),
-                  ),
-                  ElevatedButton(
-                    onPressed: _joinRoom,
-                    child: Text('Join Room'),
-                  ),
-                  if (roomId.isNotEmpty) Text('Room ID: $roomId'),
-                  if (isWaiting) Text('Waiting for opponent...'),
-                ],
-              ),
-            if (isConnected && _isGameActive)
-              Expanded(
-                child: Column(
-                  children: [
-                    Text('Room ID: $roomId'),
-                    Text('Player ID: $playerId'),
-                    Text('Opponent ID: $opponentId'),
-                    Text('Player 1 Score: $_scorePlayer1'),
-                    Text('Player 2 Score: $_scorePlayer2'),
-                    Text(_isMyTurn ? 'Your Turn' : 'Opponent\'s Turn',
-                        style: const TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.bold)),
-                    Expanded(
-                      child: GridView.builder(
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 4,
-                          childAspectRatio: 1,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                        ),
-                        itemCount: _numbers.length,
-                        itemBuilder: (context, index) {
-                          return GestureDetector(
-                            onTap: () => _onCardTap(index),
-                            child: Card(
-                              color:
-                                  _flipped[index] ? Colors.white : Colors.blue,
-                              child: Center(
-                                child: _flipped[index]
-                                    ? Text(
-                                        '${_numbers[index]}',
-                                        style: const TextStyle(
-                                            fontSize: 32,
-                                            fontWeight: FontWeight.bold),
-                                      )
-                                    : null,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+              itemCount: _numbers.length,
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: () => _onCardTap(index),
+                  child: Card(
+                    color:
+                        _flipped[index] ? Colors.white : Colors.blueGrey[600],
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    child: Center(
+                      child: _flipped[index]
+                          ? Text(
+                              '${_numbers[index]}',
+                              style: const TextStyle(
+                                  fontSize: 32, fontWeight: FontWeight.bold),
+                            )
+                          : const Icon(Icons.question_mark,
+                              size: 40, color: Colors.white),
                     ),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _buildInfoCard('Player 1', '$_scorePlayer1', Colors.green),
+        _buildInfoCard('Player 2', '$_scorePlayer2', Colors.blue),
+      ],
+    );
+  }
+
+  Widget _buildInfoCard(String label, String value, Color color) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      elevation: 3,
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(label,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+            const SizedBox(height: 5),
+            Text(value,
+                style: TextStyle(
+                    fontSize: 20, fontWeight: FontWeight.bold, color: color)),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildButton(
+      String text, IconData icon, Color color, VoidCallback onPressed) {
+    return Container(
+      width: 250,
+      height: 60,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(10),
+          child: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: Colors.white),
+                const SizedBox(width: 10),
+                Text(
+                  text,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
