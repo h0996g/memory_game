@@ -13,7 +13,7 @@ class OnlineMultiplayerGameScreen extends StatefulWidget {
 
 class _OnlineMultiplayerGameScreenState
     extends State<OnlineMultiplayerGameScreen> {
-  late IO.Socket socket;
+  IO.Socket? socket;
   String roomId = '';
   String playerId = '';
   bool isConnected = false;
@@ -69,15 +69,21 @@ class _OnlineMultiplayerGameScreenState
 
   void connectToServer() {
     print('Attempting to connect to server...');
+    // Dispose of the old socket if it exists
+    if (socket != null) {
+      socket!.dispose();
+    }
+
+    // Create a new socket
     socket = IO.io('http://192.168.1.18:3000', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
       'timeout': 10000,
     });
 
-    socket.connect();
+    socket!.connect();
 
-    socket.onConnect((_) {
+    socket!.onConnect((_) {
       print('Connected to server');
       setState(() {
         isConnected = true;
@@ -85,15 +91,18 @@ class _OnlineMultiplayerGameScreenState
       });
     });
 
-    socket.onConnectError((error) {
+    socket!.onConnectError((error) {
       print('Connection error: $error');
+      setState(() {
+        isConnected = false;
+      });
     });
 
-    socket.onError((error) {
+    socket!.onError((error) {
       print('Socket error: $error');
     });
 
-    socket.on('roomCreated', (data) {
+    socket!.on('roomCreated', (data) {
       print('Room created: $data');
       setState(() {
         roomId = data['roomId'];
@@ -101,14 +110,14 @@ class _OnlineMultiplayerGameScreenState
       });
     });
 
-    socket.on('waitingForOpponent', (data) {
+    socket!.on('waitingForOpponent', (data) {
       print('Waiting for opponent in room: ${data['roomId']}');
       setState(() {
         isWaiting = true;
       });
     });
 
-    socket.on('gameJoined', (data) {
+    socket!.on('gameJoined', (data) {
       print('Game joined: $data');
       setState(() {
         roomId = data['roomId'];
@@ -126,7 +135,7 @@ class _OnlineMultiplayerGameScreenState
       _printGameState();
     });
 
-    socket.on('gameState', (data) {
+    socket!.on('gameState', (data) {
       print('Received game state: $data');
       setState(() {
         _numbers = List<int>.from(data['numbers']);
@@ -141,7 +150,7 @@ class _OnlineMultiplayerGameScreenState
       _printGameState();
     });
 
-    socket.on('opponentDisconnected', (_) {
+    socket!.on('opponentDisconnected', (_) {
       print('Opponent disconnected');
       showDialog(
         context: context,
@@ -161,7 +170,7 @@ class _OnlineMultiplayerGameScreenState
       );
     });
 
-    socket.on('gameRestarted', (data) {
+    socket!.on('gameRestarted', (data) {
       print('Game restarted: $data');
       setState(() {
         _initializeGame(List<int>.from(data['gameState']['numbers']));
@@ -172,7 +181,7 @@ class _OnlineMultiplayerGameScreenState
       _printGameState();
     });
 
-    socket.on('roomJoinError', (data) {
+    socket!.on('roomJoinError', (data) {
       print('Room join error: ${data['message']}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(data['message'])),
@@ -181,12 +190,12 @@ class _OnlineMultiplayerGameScreenState
   }
 
   void _createRoom() {
-    socket.emit('createRoom', {});
+    socket!.emit('createRoom', {});
   }
 
   void _joinRoom() {
     if (roomIdController.text.isNotEmpty) {
-      socket.emit('joinRoom', {'roomId': roomIdController.text});
+      socket!.emit('joinRoom', {'roomId': roomIdController.text});
     }
   }
 
@@ -200,7 +209,7 @@ class _OnlineMultiplayerGameScreenState
       _steps++;
 
       print('Emitting flipCard event: $index');
-      socket.emit('flipCard', {'roomId': roomId, 'index': index});
+      socket!.emit('flipCard', {'roomId': roomId, 'index': index});
 
       if (_previousIndex == null) {
         _previousIndex = index;
@@ -230,7 +239,7 @@ class _OnlineMultiplayerGameScreenState
           _previousIndex = null;
           _waiting = false;
 
-          socket.emit('updateGameState', {
+          socket!.emit('updateGameState', {
             'roomId': roomId,
             'numbers': _numbers,
             'flipped': _flipped,
@@ -264,7 +273,7 @@ class _OnlineMultiplayerGameScreenState
             child: const Text('Play Again'),
             onPressed: () {
               Navigator.of(context).pop();
-              socket.emit('restartGame', {'roomId': roomId});
+              socket!.emit('restartGame', {'roomId': roomId});
             },
           ),
           TextButton(
@@ -289,7 +298,16 @@ class _OnlineMultiplayerGameScreenState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (!isConnected) const Text('Connecting to server...'),
+            if (!isConnected)
+              Column(
+                children: [
+                  Text('Connecting to server...'),
+                  ElevatedButton(
+                    onPressed: connectToServer,
+                    child: Text('Retry Connection'),
+                  ),
+                ],
+              ),
             if (isConnected && !_isGameActive)
               Column(
                 children: [
@@ -364,7 +382,8 @@ class _OnlineMultiplayerGameScreenState
 
   @override
   void dispose() {
-    socket.disconnect();
+    socket?.disconnect();
+    socket?.dispose();
     super.dispose();
   }
 }
