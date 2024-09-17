@@ -79,7 +79,7 @@ class _OnlineMultiplayerGameScreenState
       print('Connected to server');
       setState(() {
         isConnected = true;
-        playerId = Uuid().v4();
+        playerId = const Uuid().v4();
       });
       print('Emitting joinGame event with playerId: $playerId');
       socket.emit('joinGame', {'playerId': playerId});
@@ -134,22 +134,16 @@ class _OnlineMultiplayerGameScreenState
       _printGameState();
     });
 
-    socket.on('cardFlipped', (data) {
-      print('Opponent flipped card: $data');
-      int index = data['index'];
-      _onCardTap(index);
-    });
-
     socket.on('opponentDisconnected', (_) {
       print('Opponent disconnected');
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text('Opponent Disconnected'),
-          content: Text('Your opponent has left the game.'),
+          title: const Text('Opponent Disconnected'),
+          content: const Text('Your opponent has left the game.'),
           actions: [
             TextButton(
-              child: Text('OK'),
+              child: const Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
@@ -171,15 +165,9 @@ class _OnlineMultiplayerGameScreenState
       _printGameState();
     });
   }
-// ...
 
   void _onCardTap(int index) {
-    print('_onCardTap called: index=$index');
-    _printGameState();
-
     if (_waiting || _flipped[index] || !_isGameActive || !_isMyTurn) {
-      print(
-          'Returning early due to: waiting=$_waiting, flipped=${_flipped[index]}, gameActive=$_isGameActive, isMyTurn=$_isMyTurn');
       return;
     }
 
@@ -187,19 +175,17 @@ class _OnlineMultiplayerGameScreenState
       _flipped[index] = true;
       _steps++;
 
+      print('Emitting flipCard event: $index');
+      socket.emit('flipCard', {'gameId': gameId, 'index': index});
+
       if (_previousIndex == null) {
         _previousIndex = index;
-        print('Emitting flipCard event: $index');
-        socket.emit('flipCard', {'gameId': gameId, 'index': index});
       } else {
         _waiting = true;
-        print('Emitting flipCard event: $index');
-        socket.emit('flipCard', {'gameId': gameId, 'index': index});
-        Future.delayed(const Duration(milliseconds: 500), () {
-          bool matchFound = false;
-          if (_numbers[_previousIndex!] == _numbers[index]) {
-            print('Match found');
-            matchFound = true;
+        Future.delayed(const Duration(milliseconds: 1000), () {
+          bool matchFound = _numbers[_previousIndex!] == _numbers[index];
+
+          if (matchFound) {
             if (_currentPlayer == 1) {
               _scorePlayer1++;
             } else {
@@ -208,23 +194,21 @@ class _OnlineMultiplayerGameScreenState
             if (_scorePlayer1 + _scorePlayer2 == _totalPairs) {
               _endGame();
             }
+            // Matching pair, keep turn
           } else {
-            print('No match, flipping cards back');
+            // Non-matching pair, change turn
             _flipped[_previousIndex!] = false;
             _flipped[index] = false;
-          }
-
-          if (!matchFound) {
             _currentPlayer = 3 - _currentPlayer; // Switch player
           }
+
           _isMyTurn = (_currentPlayer == 1 && _amIFirstPlayer) ||
               (_currentPlayer == 2 && !_amIFirstPlayer);
 
           _previousIndex = null;
           _waiting = false;
-          setState(() {});
 
-          print('Emitting updateGameState event');
+          // Emit updateGameState event
           socket.emit('updateGameState', {
             'gameId': gameId,
             'numbers': _numbers,
@@ -234,19 +218,19 @@ class _OnlineMultiplayerGameScreenState
             'currentPlayer': _currentPlayer,
             'steps': _steps,
           });
-          _printGameState();
+
+          setState(() {}); // Trigger a rebuild to reflect the changes
         });
       }
     });
   }
 
-// ...
   void _endGame() {
     _isGameActive = false;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Game Over'),
+        title: const Text('Game Over'),
         content: Text(
           _scorePlayer1 > _scorePlayer2
               ? 'Player 1 wins!'
@@ -256,14 +240,14 @@ class _OnlineMultiplayerGameScreenState
         ),
         actions: [
           TextButton(
-            child: Text('Play Again'),
+            child: const Text('Play Again'),
             onPressed: () {
               Navigator.of(context).pop();
               socket.emit('restartGame', {'gameId': gameId});
             },
           ),
           TextButton(
-            child: Text('Quit'),
+            child: const Text('Quit'),
             onPressed: () {
               Navigator.of(context).pop();
               Navigator.of(context).pop();
@@ -278,15 +262,15 @@ class _OnlineMultiplayerGameScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Online Memory Game'),
+        title: const Text('Online Memory Game'),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (!isConnected) Text('Connecting to server...'),
+            if (!isConnected) const Text('Connecting to server...'),
             if (isConnected && isWaiting)
-              Column(
+              const Column(
                 children: [
                   CircularProgressIndicator(),
                   SizedBox(height: 20),
@@ -303,11 +287,12 @@ class _OnlineMultiplayerGameScreenState
                     Text('Player 1 Score: $_scorePlayer1'),
                     Text('Player 2 Score: $_scorePlayer2'),
                     Text(_isMyTurn ? 'Your Turn' : 'Opponent\'s Turn',
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 24, fontWeight: FontWeight.bold)),
                     Expanded(
                       child: GridView.builder(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 4,
                           childAspectRatio: 1,
                           crossAxisSpacing: 10,
@@ -324,7 +309,7 @@ class _OnlineMultiplayerGameScreenState
                                 child: _flipped[index]
                                     ? Text(
                                         '${_numbers[index]}',
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                             fontSize: 32,
                                             fontWeight: FontWeight.bold),
                                       )
