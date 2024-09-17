@@ -14,10 +14,10 @@ class OnlineMultiplayerGameScreen extends StatefulWidget {
 class _OnlineMultiplayerGameScreenState
     extends State<OnlineMultiplayerGameScreen> {
   late IO.Socket socket;
-  String gameId = '';
+  String roomId = '';
   String playerId = '';
   bool isConnected = false;
-  bool isWaiting = true;
+  bool isWaiting = false;
   String opponentId = '';
 
   final int _numPairs = 8;
@@ -33,6 +33,8 @@ class _OnlineMultiplayerGameScreenState
   bool _isGameActive = false;
   bool _isMyTurn = false;
   bool _amIFirstPlayer = false;
+
+  TextEditingController roomIdController = TextEditingController();
 
   @override
   void initState() {
@@ -52,7 +54,7 @@ class _OnlineMultiplayerGameScreenState
 
   void _printGameState() {
     print('Game State:');
-    print('Game ID: $gameId');
+    print('Room ID: $roomId');
     print('Player ID: $playerId');
     print('Opponent ID: $opponentId');
     print('Am I First Player: $_amIFirstPlayer');
@@ -81,8 +83,6 @@ class _OnlineMultiplayerGameScreenState
         isConnected = true;
         playerId = const Uuid().v4();
       });
-      print('Emitting joinGame event with playerId: $playerId');
-      socket.emit('joinGame', {'playerId': playerId});
     });
 
     socket.onConnectError((error) {
@@ -93,18 +93,25 @@ class _OnlineMultiplayerGameScreenState
       print('Socket error: $error');
     });
 
-    socket.on('waiting', (_) {
-      print('Waiting for opponent');
+    socket.on('roomCreated', (data) {
+      print('Room created: $data');
+      setState(() {
+        roomId = data['roomId'];
+        isWaiting = true;
+      });
+    });
+
+    socket.on('waitingForOpponent', (data) {
+      print('Waiting for opponent in room: ${data['roomId']}');
       setState(() {
         isWaiting = true;
-        _amIFirstPlayer = true;
       });
     });
 
     socket.on('gameJoined', (data) {
       print('Game joined: $data');
       setState(() {
-        gameId = data['gameId'];
+        roomId = data['roomId'];
         opponentId = data['opponentId'];
         isWaiting = false;
         _isGameActive = true;
@@ -113,7 +120,7 @@ class _OnlineMultiplayerGameScreenState
         _initializeGame(List<int>.from(data['gameState']['numbers']));
         _currentPlayer = 1;
       });
-      print('Joined game: $gameId with opponent: $opponentId');
+      print('Joined room: $roomId with opponent: $opponentId');
       print('Am I first player? $_amIFirstPlayer');
       print('Is it my turn? $_isMyTurn');
       _printGameState();
@@ -164,6 +171,23 @@ class _OnlineMultiplayerGameScreenState
       });
       _printGameState();
     });
+
+    socket.on('roomJoinError', (data) {
+      print('Room join error: ${data['message']}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(data['message'])),
+      );
+    });
+  }
+
+  void _createRoom() {
+    socket.emit('createRoom', {});
+  }
+
+  void _joinRoom() {
+    if (roomIdController.text.isNotEmpty) {
+      socket.emit('joinRoom', {'roomId': roomIdController.text});
+    }
   }
 
   void _onCardTap(int index) {
@@ -176,7 +200,7 @@ class _OnlineMultiplayerGameScreenState
       _steps++;
 
       print('Emitting flipCard event: $index');
-      socket.emit('flipCard', {'gameId': gameId, 'index': index});
+      socket.emit('flipCard', {'roomId': roomId, 'index': index});
 
       if (_previousIndex == null) {
         _previousIndex = index;
@@ -194,12 +218,10 @@ class _OnlineMultiplayerGameScreenState
             if (_scorePlayer1 + _scorePlayer2 == _totalPairs) {
               _endGame();
             }
-            // Matching pair, keep turn
           } else {
-            // Non-matching pair, change turn
             _flipped[_previousIndex!] = false;
             _flipped[index] = false;
-            _currentPlayer = 3 - _currentPlayer; // Switch player
+            _currentPlayer = 3 - _currentPlayer;
           }
 
           _isMyTurn = (_currentPlayer == 1 && _amIFirstPlayer) ||
@@ -208,9 +230,8 @@ class _OnlineMultiplayerGameScreenState
           _previousIndex = null;
           _waiting = false;
 
-          // Emit updateGameState event
           socket.emit('updateGameState', {
-            'gameId': gameId,
+            'roomId': roomId,
             'numbers': _numbers,
             'flipped': _flipped,
             'scorePlayer1': _scorePlayer1,
@@ -219,7 +240,7 @@ class _OnlineMultiplayerGameScreenState
             'steps': _steps,
           });
 
-          setState(() {}); // Trigger a rebuild to reflect the changes
+          setState(() {});
         });
       }
     });
@@ -243,7 +264,7 @@ class _OnlineMultiplayerGameScreenState
             child: const Text('Play Again'),
             onPressed: () {
               Navigator.of(context).pop();
-              socket.emit('restartGame', {'gameId': gameId});
+              socket.emit('restartGame', {'roomId': roomId});
             },
           ),
           TextButton(
@@ -269,19 +290,31 @@ class _OnlineMultiplayerGameScreenState
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (!isConnected) const Text('Connecting to server...'),
-            if (isConnected && isWaiting)
-              const Column(
+            if (isConnected && !_isGameActive)
+              Column(
                 children: [
-                  CircularProgressIndicator(),
+                  ElevatedButton(
+                    onPressed: _createRoom,
+                    child: Text('Create Room'),
+                  ),
                   SizedBox(height: 20),
-                  Text('Waiting for opponent...'),
+                  TextField(
+                    controller: roomIdController,
+                    decoration: InputDecoration(labelText: 'Room ID'),
+                  ),
+                  ElevatedButton(
+                    onPressed: _joinRoom,
+                    child: Text('Join Room'),
+                  ),
+                  if (roomId.isNotEmpty) Text('Room ID: $roomId'),
+                  if (isWaiting) Text('Waiting for opponent...'),
                 ],
               ),
-            if (isConnected && !isWaiting)
+            if (isConnected && _isGameActive)
               Expanded(
                 child: Column(
                   children: [
-                    Text('Game ID: $gameId'),
+                    Text('Room ID: $roomId'),
                     Text('Player ID: $playerId'),
                     Text('Opponent ID: $opponentId'),
                     Text('Player 1 Score: $_scorePlayer1'),
