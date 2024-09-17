@@ -34,37 +34,16 @@ class _OnlineMultiplayerGameScreenState
   bool _isMyTurn = false;
   bool _amIFirstPlayer = false;
 
+  bool _opponentWantsRestart = false;
+  bool _isGameOverDialogOpen = false;
+  String _lastWinner = '';
+
   TextEditingController roomIdController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     connectToServer();
-  }
-
-  void _initializeGame(List<int> numbers) {
-    _numbers = numbers;
-    _flipped = List.generate(_numbers.length, (_) => false);
-    _previousIndex = null;
-    _scorePlayer1 = 0;
-    _scorePlayer2 = 0;
-    _steps = 0;
-    _isGameActive = true;
-  }
-
-  void _printGameState() {
-    print('Game State:');
-    print('Room ID: $roomId');
-    print('Player ID: $playerId');
-    print('Opponent ID: $opponentId');
-    print('Am I First Player: $_amIFirstPlayer');
-    print('Is My Turn: $_isMyTurn');
-    print('Current Player: $_currentPlayer');
-    print('Is Game Active: $_isGameActive');
-    print('Is Waiting: $_waiting');
-    print('Score Player 1: $_scorePlayer1');
-    print('Score Player 2: $_scorePlayer2');
-    print('Steps: $_steps');
   }
 
   void connectToServer() {
@@ -74,7 +53,6 @@ class _OnlineMultiplayerGameScreenState
       _connectionTimedOut = false;
     });
 
-    // Set a timer for 5 seconds
     Timer(const Duration(seconds: 5), () {
       if (!isConnected) {
         setState(() {
@@ -82,12 +60,11 @@ class _OnlineMultiplayerGameScreenState
         });
       }
     });
-    // Dispose of the old socket if it exists
+
     if (socket != null) {
       socket!.dispose();
     }
 
-    // Create a new socket
     socket = IO.io('http://192.168.1.18:3000', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
@@ -183,23 +160,76 @@ class _OnlineMultiplayerGameScreenState
       );
     });
 
+    socket!.on('gameEnded', (data) {
+      print('Game ended: $data');
+      String winner = data['winner'];
+      _showGameOverDialog(winner);
+    });
+
     socket!.on('gameRestarted', (data) {
       print('Game restarted: $data');
+      if (_isGameOverDialogOpen) {
+        Navigator.of(context).pop(); // Dismiss the dialog if it's open
+      }
       setState(() {
         _initializeGame(List<int>.from(data['gameState']['numbers']));
         _currentPlayer = data['startingPlayer'];
         _isMyTurn = (_currentPlayer == 1 && _amIFirstPlayer) ||
             (_currentPlayer == 2 && !_amIFirstPlayer);
+        _isGameActive = true;
+        _opponentWantsRestart = false;
+        _isGameOverDialogOpen = false;
       });
       _printGameState();
     });
 
-    socket!.on('roomJoinError', (data) {
-      print('Room join error: ${data['message']}');
+    socket!.on('opponentWantsRestart', (_) {
+      setState(() {
+        _opponentWantsRestart = true;
+      });
+      if (_isGameOverDialogOpen) {
+        Navigator.of(context).pop(); // Close the current dialog
+        _showGameOverDialog(_lastWinner); // Reopen with new options
+      } else {
+        _showRestartDialog();
+      }
+    });
+
+    socket!.on('opponentQuit', (_) {
+      if (_isGameActive) {
+        Navigator.of(context)
+            .pop(); // Dismiss the game over dialog if it's open
+      }
+      Navigator.of(context).pop(); // Return to previous screen
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(data['message'])),
+        const SnackBar(content: Text('Opponent has quit the game')),
       );
     });
+  }
+
+  void _initializeGame(List<int> numbers) {
+    _numbers = numbers;
+    _flipped = List.generate(_numbers.length, (_) => false);
+    _previousIndex = null;
+    _scorePlayer1 = 0;
+    _scorePlayer2 = 0;
+    _steps = 0;
+    _isGameActive = true;
+  }
+
+  void _printGameState() {
+    print('Game State:');
+    print('Room ID: $roomId');
+    print('Player ID: $playerId');
+    print('Opponent ID: $opponentId');
+    print('Am I First Player: $_amIFirstPlayer');
+    print('Is My Turn: $_isMyTurn');
+    print('Current Player: $_currentPlayer');
+    print('Is Game Active: $_isGameActive');
+    print('Is Waiting: $_waiting');
+    print('Score Player 1: $_scorePlayer1');
+    print('Score Player 2: $_scorePlayer2');
+    print('Steps: $_steps');
   }
 
   void _createRoom() {
@@ -270,30 +300,79 @@ class _OnlineMultiplayerGameScreenState
 
   void _endGame() {
     _isGameActive = false;
+    String winner = _scorePlayer1 > _scorePlayer2 ? 'Player 1' : 'Player 2';
+    socket!.emit('gameEnded', {'roomId': roomId, 'winner': winner});
+  }
+
+  void _showGameOverDialog(String winner) {
+    _lastWinner = winner;
+    _isGameOverDialogOpen = true;
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: const Text('Game Over'),
         content: Text(
-          _scorePlayer1 > _scorePlayer2
-              ? 'Player 1 wins!'
-              : _scorePlayer1 < _scorePlayer2
-                  ? 'Player 2 wins!'
-                  : 'It\'s a tie!',
+          winner == 'Player 1'
+              ? (_amIFirstPlayer ? 'You win!' : 'Player 1 wins!')
+              : (_amIFirstPlayer ? 'Player 2 wins!' : 'You win!'),
         ),
         actions: [
-          TextButton(
-            child: const Text('Play Again'),
-            onPressed: () {
-              Navigator.of(context).pop();
-              socket!.emit('restartGame', {'roomId': roomId});
-            },
-          ),
+          if (_opponentWantsRestart)
+            TextButton(
+              child: const Text('Accept Restart'),
+              onPressed: () {
+                socket!.emit('playerWantsRestart', {'roomId': roomId});
+                Navigator.of(context).pop();
+                _isGameOverDialogOpen = false;
+                _opponentWantsRestart = false;
+              },
+            ),
+          if (!_opponentWantsRestart)
+            TextButton(
+              child: const Text('Play Again'),
+              onPressed: () {
+                socket!.emit('playerWantsRestart', {'roomId': roomId});
+                Navigator.of(context).pop();
+                _isGameOverDialogOpen = false;
+              },
+            ),
           TextButton(
             child: const Text('Quit'),
             onPressed: () {
+              socket!.emit('playerQuit', {'roomId': roomId});
+              Navigator.of(context).pop(); // Dismiss dialog
+              Navigator.of(context).pop(); // Return to previous screen
+              _isGameOverDialogOpen = false;
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRestartDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Restart Game'),
+        content: const Text(
+            'Your opponent wants to restart the game. Do you agree?'),
+        actions: [
+          TextButton(
+            child: const Text('Accept'),
+            onPressed: () {
+              socket!.emit('playerWantsRestart', {'roomId': roomId});
               Navigator.of(context).pop();
+              _opponentWantsRestart = false;
+            },
+          ),
+          TextButton(
+            child: const Text('Decline'),
+            onPressed: () {
               Navigator.of(context).pop();
+              _opponentWantsRestart = false;
             },
           ),
         ],
