@@ -39,7 +39,9 @@ dependencies:
   socket_io_client: ^2.0.0
   uuid: ^3.0.7
   provider: ^6.0.0
+  google_fonts: ^4.0.3
   rename: ^3.0.2
+  flutter_screenutil: ^5.9.3
 
 dev_dependencies:
   flutter_test:

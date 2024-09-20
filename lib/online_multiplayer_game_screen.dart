@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'dart:async';
@@ -44,6 +46,13 @@ class _OnlineMultiplayerGameScreenState
   void initState() {
     super.initState();
     connectToServer();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    socket!.dispose();
   }
 
   void connectToServer() {
@@ -384,41 +393,109 @@ class _OnlineMultiplayerGameScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60),
-        child: AppBar(
-          flexibleSpace: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.blueGrey, Colors.grey],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-          ),
-          title: const Text(
-            'Online Memory Game',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-          centerTitle: true,
-          elevation: 0,
-        ),
-      ),
-      body: Container(
-        color: Colors.grey[200],
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
+      backgroundColor: const Color(0xFFF5F5F5),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            _buildBackgroundShapes(),
+            Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (!isConnected) _buildConnectionStatus(),
-                if (isConnected && !_isGameActive) _buildLobbyArea(),
-                if (isConnected && _isGameActive) _buildGameArea(),
+                _buildAppBar(),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (!isConnected) _buildConnectionStatus(),
+                        if (isConnected && !_isGameActive) _buildLobbyArea(),
+                        if (isConnected && _isGameActive) ...[
+                          _buildPlayerCards(),
+                          const SizedBox(height: 16),
+                          _buildTurnIndicator(),
+                          const SizedBox(height: 16),
+                          Expanded(child: _buildGameGrid()),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
-          ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildBackgroundShapes() {
+    return Stack(
+      children: [
+        Positioned(
+          top: -50,
+          left: -50,
+          child: _buildShape(200, const Color(0xFFFFCCBC).withOpacity(0.5)),
+        ),
+        Positioned(
+          bottom: -30,
+          right: -30,
+          child: _buildShape(150, const Color(0xFFB2DFDB).withOpacity(0.5)),
+        ),
+        Positioned(
+          top: 100,
+          right: -20,
+          child: _buildShape(100, const Color(0xFFFFECB3).withOpacity(0.5)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildShape(double size, Color color) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.3),
+            blurRadius: 20,
+            spreadRadius: 5,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFFFF9800), Color(0xFFFF5722)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+          const Text(
+            'Online',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(width: 48), // To balance the back button
+        ],
       ),
     );
   }
@@ -433,12 +510,13 @@ class _OnlineMultiplayerGameScreenState
         ),
         const SizedBox(height: 20),
         if (!_connectionTimedOut)
-          const CircularProgressIndicator()
+          const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF9800)))
         else
           _buildButton(
             'Retry Connection',
             Icons.refresh,
-            Colors.indigo,
+            const Color(0xFFFF9800),
             connectToServer,
           ),
       ],
@@ -452,15 +530,22 @@ class _OnlineMultiplayerGameScreenState
         _buildButton(
           'Create Room',
           Icons.add,
-          Colors.blueGrey,
+          const Color(0xFFFF9800),
           _createRoom,
         ),
         const SizedBox(height: 20),
         TextField(
           controller: roomIdController,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Room ID',
-            border: OutlineInputBorder(),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFFF9800)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFFF5722), width: 2),
+            ),
             filled: true,
             fillColor: Colors.white,
           ),
@@ -469,7 +554,7 @@ class _OnlineMultiplayerGameScreenState
         _buildButton(
           'Join Room',
           Icons.login,
-          Colors.indigo,
+          const Color(0xFFFF5722),
           _joinRoom,
         ),
         if (roomId.isNotEmpty)
@@ -489,86 +574,129 @@ class _OnlineMultiplayerGameScreenState
     );
   }
 
-  Widget _buildGameArea() {
-    return Expanded(
-      child: Column(
-        children: [
-          _buildInfoRow(),
-          const SizedBox(height: 20),
-          Text(
-            _isMyTurn ? 'Your Turn' : 'Opponent\'s Turn',
-            style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: _isMyTurn ? Colors.green : Colors.red),
-          ),
-          const SizedBox(height: 20),
-          Expanded(
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                childAspectRatio: 1,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-              ),
-              itemCount: _numbers.length,
-              itemBuilder: (context, index) {
-                return GestureDetector(
-                  onTap: () => _onCardTap(index),
-                  child: Card(
-                    color:
-                        _flipped[index] ? Colors.white : Colors.blueGrey[600],
-                    elevation: 5,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                    child: Center(
-                      child: _flipped[index]
-                          ? Text(
-                              '${_numbers[index]}',
-                              style: const TextStyle(
-                                  fontSize: 32, fontWeight: FontWeight.bold),
-                            )
-                          : const Icon(Icons.question_mark,
-                              size: 40, color: Colors.white),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRow() {
+  Widget _buildPlayerCards() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _buildInfoCard('Player 1', '$_scorePlayer1', Colors.green),
-        _buildInfoCard('Player 2', '$_scorePlayer2', Colors.blue),
+        Expanded(
+          child: CompactPlayerCard(
+            player: 'Player 1',
+            score: _scorePlayer1,
+            isActive: _currentPlayer == 1,
+            color: const Color(0xFFFF9800),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: CompactPlayerCard(
+            player: 'Player 2',
+            score: _scorePlayer2,
+            isActive: _currentPlayer == 2,
+            color: const Color(0xFFFF5722),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildInfoCard(String label, String value, Color color) {
+  Widget _buildTurnIndicator() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      decoration: BoxDecoration(
+        color: _isMyTurn ? const Color(0xFFFF9800) : const Color(0xFFFF5722),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        _isMyTurn ? 'Your Turn' : 'Opponent\'s Turn',
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildGameGrid() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double gridWidth = constraints.maxWidth;
+        double gridHeight = constraints.maxHeight;
+        double itemSize = gridWidth / 4;
+        int rowCount = (gridHeight / itemSize).floor();
+        rowCount = min(rowCount, (_numbers.length / 4).ceil());
+
+        return GridView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 4,
+            childAspectRatio: 1,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+          ),
+          itemCount: rowCount * 4,
+          itemBuilder: (context, index) {
+            if (index >= _numbers.length) {
+              return const SizedBox();
+            }
+            return GestureDetector(
+              onTap: () => _onCardTap(index),
+              child: TweenAnimationBuilder(
+                tween: Tween<double>(begin: 0, end: _flipped[index] ? pi : 0),
+                duration: const Duration(milliseconds: 300),
+                builder: (BuildContext context, double value, Widget? child) {
+                  return Transform(
+                    transform: Matrix4.identity()
+                      ..setEntry(3, 2, 0.001)
+                      ..rotateY(value),
+                    alignment: Alignment.center,
+                    child: value < pi / 2
+                        ? _buildCardFront()
+                        : Transform(
+                            transform: Matrix4.identity()..rotateY(pi),
+                            alignment: Alignment.center,
+                            child: _buildCardBack(index),
+                          ),
+                  );
+                },
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildCardFront() {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      elevation: 3,
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(label,
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-            const SizedBox(height: 5),
-            Text(value,
-                style: TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.bold, color: color)),
-          ],
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFFF9800), width: 2),
+        ),
+        child: const Center(
+          child: Icon(Icons.question_mark, size: 40, color: Color(0xFFFF9800)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCardBack(int index) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 4,
+      color: const Color(0xFFFF9800),
+      child: Center(
+        child: Text(
+          '${_numbers[index]}',
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
       ),
     );
@@ -581,13 +709,21 @@ class _OnlineMultiplayerGameScreenState
       height: 60,
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.3),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
           child: Center(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -610,10 +746,62 @@ class _OnlineMultiplayerGameScreenState
     );
   }
 
+  // ... (keep all other methods)
+}
+
+class CompactPlayerCard extends StatelessWidget {
+  final String player;
+  final int score;
+  final bool isActive;
+  final Color color;
+
+  const CompactPlayerCard({
+    super.key,
+    required this.player,
+    required this.score,
+    required this.isActive,
+    required this.color,
+  });
+
   @override
-  void dispose() {
-    socket?.disconnect();
-    socket?.dispose();
-    super.dispose();
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border:
+            Border.all(color: isActive ? color : Colors.transparent, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.3),
+            spreadRadius: 1,
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Text(
+            player,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          Text(
+            'Score: $score',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isActive ? color : Colors.grey[800],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

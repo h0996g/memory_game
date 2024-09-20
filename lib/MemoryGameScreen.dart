@@ -175,149 +175,179 @@ class _MemoryGameScreenState extends State<MemoryGameScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60),
-        child: AppBar(
-          flexibleSpace: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.blueGrey, Colors.grey],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+      backgroundColor: const Color(0xFFF5F5F5),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            _buildBackgroundShapes(),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildAppBar(),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildTimerSection(),
+                        const SizedBox(height: 16),
+                        _buildScoreAndSteps(),
+                        const SizedBox(height: 16),
+                        Expanded(child: _buildGameGrid()),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-          title: const Text(
-            'Memory Game',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-          centerTitle: true,
-          elevation: 0,
+          ],
         ),
       ),
-      body: Container(
-        color: Colors.grey[200],
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Timer Section (Circular Design)
-              Container(
-                width: 200,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.3),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Time Left',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blueGrey[600],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '$_timeLeft',
-                      style: TextStyle(
-                        fontSize: 40,
-                        fontWeight: FontWeight.bold,
-                        color: _timeLeft <= 10 ? Colors.red : Colors.blueGrey,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    LinearProgressIndicator(
-                      value: _timeLeft /
-                          60, // Assuming the total time is 60 seconds
-                      backgroundColor: Colors.grey[300],
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        _timeLeft <= 10 ? Colors.red : Colors.blueGrey,
-                      ),
-                      minHeight: 10,
-                    ),
-                  ],
-                ),
-              ),
+    );
+  }
 
-              const SizedBox(height: 10),
-              // Score and Steps Row
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 10),
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.blueGrey[50],
-                  borderRadius: BorderRadius.circular(15),
-                  border: Border.all(color: Colors.blueGrey[200]!, width: 1),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildInfoItem(Icons.star, 'Score', '$_score/$_totalPairs'),
-                    Container(
-                      height: 30,
-                      width: 1,
-                      color: Colors.blueGrey[300],
-                    ),
-                    _buildInfoItem(Icons.directions_walk, 'Steps', '$_steps'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 10),
-              // Game Grid
-              Expanded(
-                child: GridView.builder(
-                  padding: const EdgeInsets.all(8),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    childAspectRatio: 1,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                  ),
-                  itemCount: _numbers.length,
-                  itemBuilder: (context, index) {
-                    return GestureDetector(
-                      onTap: () => _onCardTap(index),
-                      child: TweenAnimationBuilder(
-                        tween: Tween<double>(
-                            begin: 0, end: _flipped[index] ? pi : 0),
-                        duration: const Duration(milliseconds: 300),
-                        builder: (BuildContext context, double value,
-                            Widget? child) {
-                          return Transform(
-                            transform: Matrix4.identity()
-                              ..setEntry(3, 2, 0.001)
-                              ..rotateY(value),
-                            alignment: Alignment.center,
-                            child: value < pi / 2
-                                ? _buildCardFront()
-                                : Transform(
-                                    transform: Matrix4.identity()..rotateY(pi),
-                                    alignment: Alignment.center,
-                                    child: _buildCardBack(index),
-                                  ),
-                          );
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
+  Widget _buildBackgroundShapes() {
+    return Stack(
+      children: [
+        Positioned(
+          top: -50,
+          left: -50,
+          child: _buildShape(200, const Color(0xFFFFCCBC).withOpacity(0.5)),
         ),
+        Positioned(
+          bottom: -30,
+          right: -30,
+          child: _buildShape(150, const Color(0xFFB2DFDB).withOpacity(0.5)),
+        ),
+        Positioned(
+          top: 100,
+          right: -20,
+          child: _buildShape(100, const Color(0xFFFFECB3).withOpacity(0.5)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildShape(double size, Color color) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.3),
+            blurRadius: 20,
+            spreadRadius: 5,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFFFF9800), Color(0xFFFF5722)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+          const Text(
+            'Memory Game',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(width: 48), // To balance the back button
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimerSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFF9800).withOpacity(0.3),
+            spreadRadius: 1,
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Text(
+            'Time Left',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[800],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '$_timeLeft',
+            style: TextStyle(
+              fontSize: 40,
+              fontWeight: FontWeight.bold,
+              color: _timeLeft <= 10 ? Colors.red : const Color(0xFFFF9800),
+            ),
+          ),
+          const SizedBox(height: 8),
+          LinearProgressIndicator(
+            value: _timeLeft / 60,
+            backgroundColor: Colors.grey[300],
+            valueColor: AlwaysStoppedAnimation<Color>(
+              _timeLeft <= 10 ? Colors.red : const Color(0xFFFF9800),
+            ),
+            minHeight: 10,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScoreAndSteps() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFF9800).withOpacity(0.3),
+            spreadRadius: 1,
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildInfoItem(Icons.star, 'Score', '$_score/$_totalPairs'),
+          Container(height: 30, width: 1, color: Colors.grey[300]),
+          _buildInfoItem(Icons.directions_walk, 'Steps', '$_steps'),
+        ],
       ),
     );
   }
@@ -325,7 +355,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen>
   Widget _buildInfoItem(IconData icon, String label, String value) {
     return Row(
       children: [
-        Icon(icon, color: Colors.blueGrey[600], size: 24),
+        Icon(icon, color: const Color(0xFFFF9800), size: 24),
         const SizedBox(width: 8),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -334,7 +364,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen>
               label,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.blueGrey[600],
+                color: Colors.grey[600],
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -342,7 +372,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen>
               value,
               style: TextStyle(
                 fontSize: 18,
-                color: Colors.blueGrey[800],
+                color: Colors.grey[800],
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -352,27 +382,55 @@ class _MemoryGameScreenState extends State<MemoryGameScreen>
     );
   }
 
+  Widget _buildGameGrid() {
+    return GridView.builder(
+      padding: const EdgeInsets.all(8),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        childAspectRatio: 1,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+      ),
+      itemCount: _numbers.length,
+      itemBuilder: (context, index) {
+        return GestureDetector(
+          onTap: () => _onCardTap(index),
+          child: TweenAnimationBuilder(
+            tween: Tween<double>(begin: 0, end: _flipped[index] ? pi : 0),
+            duration: const Duration(milliseconds: 300),
+            builder: (BuildContext context, double value, Widget? child) {
+              return Transform(
+                transform: Matrix4.identity()
+                  ..setEntry(3, 2, 0.001)
+                  ..rotateY(value),
+                alignment: Alignment.center,
+                child: value < pi / 2
+                    ? _buildCardFront()
+                    : Transform(
+                        transform: Matrix4.identity()..rotateY(pi),
+                        alignment: Alignment.center,
+                        child: _buildCardBack(index),
+                      ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildCardFront() {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      color: Colors.blueGrey[100],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.white,
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(
-            color: Colors.blueGrey[300]!,
-            width: 2,
-          ),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFFF9800), width: 2),
         ),
-        child: Center(
-          child: Icon(
-            Icons.question_mark,
-            size: 40,
-            color: Colors.blueGrey[600],
-          ),
+        child: const Center(
+          child: Icon(Icons.question_mark, size: 40, color: Color(0xFFFF9800)),
         ),
       ),
     );
@@ -380,21 +438,21 @@ class _MemoryGameScreenState extends State<MemoryGameScreen>
 
   Widget _buildCardBack(int index) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 4,
+      color: const Color(0xFFFF9800),
       child: Center(
         child: Text(
           '${_numbers[index]}',
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: Colors.blueGrey[800],
+            color: Colors.white,
           ),
         ),
       ),
     );
   }
+
+  // ... (keep all other methods)
 }
