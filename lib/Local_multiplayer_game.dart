@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
+import 'package:flutter/material.dart';
 
 class LocalMultiplayerGameScreen extends StatefulWidget {
-  const LocalMultiplayerGameScreen({Key? key}) : super(key: key);
+  const LocalMultiplayerGameScreen({super.key});
 
   @override
   _LocalMultiplayerGameScreenState createState() =>
@@ -181,7 +181,7 @@ class _LocalMultiplayerGameScreenState extends State<LocalMultiplayerGameScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60),
+        preferredSize: const Size.fromHeight(56),
         child: AppBar(
           flexibleSpace: Container(
             decoration: const BoxDecoration(
@@ -193,7 +193,7 @@ class _LocalMultiplayerGameScreenState extends State<LocalMultiplayerGameScreen>
             ),
           ),
           title: const Text(
-            '1 vs 1 Memory Game',
+            'Memory Game',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
@@ -202,131 +202,96 @@ class _LocalMultiplayerGameScreenState extends State<LocalMultiplayerGameScreen>
       ),
       body: Container(
         color: Colors.grey[200],
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Player Score Section
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: 100, // Fixed height for player cards
+              child: Row(
                 children: [
-                  _buildInfoCard('Player 1', '$_scorePlayer1', Colors.green,
-                      _currentPlayer == 1),
-                  _buildInfoCard('Player 2', '$_scorePlayer2', Colors.blue,
-                      _currentPlayer == 2),
-                ],
-              ),
-              const SizedBox(height: 20),
-              // Timer Section
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildTimerCard('Time', '$_timeLeftPlayer1', Colors.red,
-                      _currentPlayer == 1),
-                  _buildTimerCard('Time', '$_timeLeftPlayer2', Colors.red,
-                      _currentPlayer == 2),
-                ],
-              ),
-              const SizedBox(height: 20),
-              // Game Grid
-              Expanded(
-                child: GridView.builder(
-                  padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    childAspectRatio: 1,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
+                  Expanded(
+                    child: CompactPlayerCard(
+                      player: 'Player 1',
+                      score: _scorePlayer1,
+                      timeLeft: _timeLeftPlayer1,
+                      isActive: _currentPlayer == 1,
+                    ),
                   ),
-                  itemCount: _numbers.length,
-                  itemBuilder: (context, index) {
-                    return GestureDetector(
-                      onTap: () => _onCardTap(index),
-                      child: TweenAnimationBuilder(
-                        tween: Tween<double>(
-                            begin: 0, end: _flipped[index] ? pi : 0),
-                        duration: const Duration(milliseconds: 300),
-                        builder: (BuildContext context, double value,
-                            Widget? child) {
-                          return Transform(
-                            transform: Matrix4.identity()
-                              ..setEntry(3, 2, 0.001)
-                              ..rotateY(value),
-                            alignment: Alignment.center,
-                            child: value < pi / 2
-                                ? _buildCardFront()
-                                : Transform(
-                                    transform: Matrix4.identity()..rotateY(pi),
-                                    alignment: Alignment.center,
-                                    child: _buildCardBack(index),
-                                  ),
-                          );
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoCard(
-      String label, String value, Color color, bool isActive) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      elevation: 3,
-      color: Colors.white,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: color,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: CompactPlayerCard(
+                      player: 'Player 2',
+                      score: _scorePlayer2,
+                      timeLeft: _timeLeftPlayer2,
+                      isActive: _currentPlayer == 2,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTimerCard(
-      String label, String value, Color color, bool isActive) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      elevation: 3,
-      color: Colors.white,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            const SizedBox(height: 8),
+            LinearProgressIndicator(
+              value: (_timeLeftPlayer1 + _timeLeftPlayer2) / 60,
+              backgroundColor: Colors.blue.shade200,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade500),
             ),
-            const SizedBox(height: 5),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: color,
+            const SizedBox(height: 8),
+            // Game Grid
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  double gridWidth = constraints.maxWidth;
+                  double gridHeight = constraints.maxHeight;
+                  double itemSize = gridWidth / 4; // 4 is the number of columns
+                  int rowCount = (gridHeight / itemSize).floor();
+
+                  // Ensure we don't create more rows than necessary
+                  rowCount = min(rowCount, (_numbers.length / 4).ceil());
+
+                  return GridView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      childAspectRatio: 1,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                    ),
+                    itemCount: rowCount *
+                        4, // Ensure we don't create more items than necessary
+                    itemBuilder: (context, index) {
+                      if (index >= _numbers.length) {
+                        return const SizedBox(); // Empty space for extra cells
+                      }
+                      return GestureDetector(
+                        onTap: () => _onCardTap(index),
+                        child: TweenAnimationBuilder(
+                          tween: Tween<double>(
+                              begin: 0, end: _flipped[index] ? pi : 0),
+                          duration: const Duration(milliseconds: 300),
+                          builder: (BuildContext context, double value,
+                              Widget? child) {
+                            return Transform(
+                              transform: Matrix4.identity()
+                                ..setEntry(3, 2, 0.001)
+                                ..rotateY(value),
+                              alignment: Alignment.center,
+                              child: value < pi / 2
+                                  ? _buildCardFront()
+                                  : Transform(
+                                      transform: Matrix4.identity()
+                                        ..rotateY(pi),
+                                      alignment: Alignment.center,
+                                      child: _buildCardBack(index),
+                                    ),
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ),
           ],
@@ -337,14 +302,25 @@ class _LocalMultiplayerGameScreenState extends State<LocalMultiplayerGameScreen>
 
   Widget _buildCardFront() {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      elevation: 5,
-      color: Colors.blueGrey[300],
-      child: const Center(
-        child: Icon(
-          Icons.question_mark,
-          size: 40,
-          color: Colors.white,
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      color: Colors.blueGrey[100],
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(
+            color: Colors.blueGrey[300]!,
+            width: 2,
+          ),
+        ),
+        child: Center(
+          child: Icon(
+            Icons.question_mark,
+            size: 40,
+            color: Colors.blueGrey[600],
+          ),
         ),
       ),
     );
@@ -364,6 +340,90 @@ class _LocalMultiplayerGameScreenState extends State<LocalMultiplayerGameScreen>
             color: Colors.blueGrey,
           ),
         ),
+      ),
+    );
+  }
+}
+
+class CompactPlayerCard extends StatelessWidget {
+  final String player;
+  final int score;
+  final int timeLeft;
+  final bool isActive;
+
+  const CompactPlayerCard({
+    super.key,
+    required this.player,
+    required this.score,
+    required this.timeLeft,
+    required this.isActive,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: isActive ? Colors.blue.shade100 : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border:
+            isActive ? Border.all(color: Colors.blue.shade500, width: 2) : null,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Text(
+            player,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: isActive ? Colors.blue.shade700 : Colors.grey.shade700,
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Column(
+                children: [
+                  const Text('Score',
+                      style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  Text(
+                    '$score',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: isActive
+                          ? Colors.blue.shade600
+                          : Colors.grey.shade800,
+                    ),
+                  ),
+                ],
+              ),
+              Column(
+                children: [
+                  const Text('Time',
+                      style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  Text(
+                    '${timeLeft}s',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: timeLeft <= 10 ? Colors.red : Colors.green,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

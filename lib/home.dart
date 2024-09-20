@@ -1,4 +1,4 @@
-import 'package:card/Local_multiplayer_game.dart';
+import 'package:card/local_multiplayer_game.dart';
 import 'package:card/MemoryGameScreen.dart';
 import 'package:card/online_multiplayer_game_screen.dart';
 import 'package:flutter/material.dart';

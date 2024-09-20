@@ -203,19 +203,34 @@ class _MemoryGameScreenState extends State<MemoryGameScreen>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Timer Section (Circular Design)
-              Center(
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: _timeLeft <= 10 ? Colors.red : Colors.blueGrey,
-                      width: 5,
+              Container(
+                width: 200,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.3),
+                      spreadRadius: 2,
+                      blurRadius: 5,
+                      offset: const Offset(0, 3),
                     ),
-                  ),
-                  child: Center(
-                    child: Text(
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Time Left',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blueGrey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
                       '$_timeLeft',
                       style: TextStyle(
                         fontSize: 40,
@@ -223,23 +238,48 @@ class _MemoryGameScreenState extends State<MemoryGameScreen>
                         color: _timeLeft <= 10 ? Colors.red : Colors.blueGrey,
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                    LinearProgressIndicator(
+                      value: _timeLeft /
+                          60, // Assuming the total time is 60 seconds
+                      backgroundColor: Colors.grey[300],
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        _timeLeft <= 10 ? Colors.red : Colors.blueGrey,
+                      ),
+                      minHeight: 10,
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 20),
+
+              const SizedBox(height: 10),
               // Score and Steps Row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildInfoCard('Score', '$_score/$_totalPairs'),
-                  _buildInfoCard('Steps', '$_steps'),
-                ],
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.blueGrey[50],
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: Colors.blueGrey[200]!, width: 1),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildInfoItem(Icons.star, 'Score', '$_score/$_totalPairs'),
+                    Container(
+                      height: 30,
+                      width: 1,
+                      color: Colors.blueGrey[300],
+                    ),
+                    _buildInfoItem(Icons.directions_walk, 'Steps', '$_steps'),
+                  ],
+                ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               // Game Grid
               Expanded(
                 child: GridView.builder(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(8),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 4,
                     childAspectRatio: 1,
@@ -282,47 +322,57 @@ class _MemoryGameScreenState extends State<MemoryGameScreen>
     );
   }
 
-  Widget _buildInfoCard(String label, String value, {Color? color}) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      elevation: 3,
-      color: Colors.white,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+  Widget _buildInfoItem(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.blueGrey[600], size: 24),
+        const SizedBox(width: 8),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               label,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.blueGrey[600],
+                fontWeight: FontWeight.w500,
+              ),
             ),
-            const SizedBox(height: 5),
             Text(
               value,
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 18,
+                color: Colors.blueGrey[800],
                 fontWeight: FontWeight.bold,
-                color: color ?? Colors.blueGrey[800],
               ),
             ),
           ],
         ),
-      ),
+      ],
     );
   }
 
   Widget _buildCardFront() {
     return Card(
-      elevation: 2,
+      elevation: 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
       ),
       color: Colors.blueGrey[100],
-      child: Center(
-        child: Icon(
-          Icons.question_mark,
-          size: 30,
-          color: Colors.blueGrey[600],
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(
+            color: Colors.blueGrey[300]!,
+            width: 2,
+          ),
+        ),
+        child: Center(
+          child: Icon(
+            Icons.question_mark,
+            size: 40,
+            color: Colors.blueGrey[600],
+          ),
         ),
       ),
     );
