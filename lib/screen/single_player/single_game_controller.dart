@@ -3,7 +3,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 
-class MemoryGameController extends GetxController {
+class SingleGameController extends GetxController {
   final int numPairs = 8;
   final RxList<int> numbers = <int>[].obs;
   final RxList<bool> flipped = <bool>[].obs;

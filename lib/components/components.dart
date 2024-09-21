@@ -321,9 +321,9 @@ Widget buildScoreAndSteps(score, totalPairs, steps) {
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        buildInfoItem(Icons.star, 'Score', '$score/$totalPairs'),
+        buildInfoItem(Icons.star_rounded, 'Score', '$score/$totalPairs'),
         Container(height: 30, width: 1, color: Colors.grey[300]),
-        buildInfoItem(Icons.directions_walk, 'Steps', '$steps'),
+        buildInfoItem(Icons.scatter_plot_sharp, 'Steps', '$steps'),
       ],
     ),
   );

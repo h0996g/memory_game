@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:card/screen/local_multiplayer/GameController.dart';
+import 'package:card/screen/local_multiplayer/local_multiplayer_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:card/components/components.dart';
@@ -9,7 +9,8 @@ class LocalMultiplayerGameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final GameController gameController = Get.put(GameController());
+    final LocalMultiplayerController gameController =
+        Get.put(LocalMultiplayerController());
 
     gameController.setShowGameOverDialogCallback(
         () => _showGameOverDialog(context, gameController));
@@ -57,7 +58,7 @@ class LocalMultiplayerGameScreen extends StatelessWidget {
   }
 
   void _showGameOverDialog(
-      BuildContext context, GameController gameController) {
+      BuildContext context, LocalMultiplayerController gameController) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -94,7 +95,7 @@ class LocalMultiplayerGameScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGameGrid(GameController gameController) {
+  Widget _buildGameGrid(LocalMultiplayerController gameController) {
     return LayoutBuilder(
       builder: (context, constraints) {
         double gridWidth = constraints.maxWidth;

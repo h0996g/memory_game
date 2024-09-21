@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:get/get.dart';
 
-class GameController extends GetxController {
+class LocalMultiplayerController extends GetxController {
   final int numPairs = 8;
   final RxList<int> numbers = <int>[].obs;
   final RxList<bool> flipped = <bool>[].obs;

@@ -1,7 +1,7 @@
 import 'package:card/home.dart';
 import 'package:card/screen/local_multiplayer/local_multiplayer_game.dart';
 import 'package:card/screen/online_multiplayer/online_multiplayer_game_screen.dart';
-import 'package:card/screen/single_player/MemoryGameScreen.dart';
+import 'package:card/screen/single_player/local_single_game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -23,7 +23,7 @@ class MemoryGameApp extends StatelessWidget {
       routes: {
         '/': (context) => HomePage(),
         '/local-multiplayer': (context) => LocalMultiplayerGameScreen(),
-        '/single-player': (context) => MemoryGameScreen(),
+        '/single-player': (context) => SingleGameScreen(),
         '/online-multiplayer': (context) => OnlineMultiplayerGameScreen(),
       },
       debugShowCheckedModeBanner: false,

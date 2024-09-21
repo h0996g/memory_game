@@ -1,17 +1,15 @@
 import 'package:card/components/components.dart';
-import 'package:card/screen/single_player/MemoryGameController.dart';
+import 'package:card/screen/single_player/single_game_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:math';
 
-import 'package:get/get_state_manager/get_state_manager.dart';
-
-class MemoryGameScreen extends StatelessWidget {
-  const MemoryGameScreen({super.key});
+class SingleGameScreen extends StatelessWidget {
+  const SingleGameScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(MemoryGameController());
+    final controller = Get.put(SingleGameController());
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -29,14 +27,14 @@ class MemoryGameScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        GetX<MemoryGameController>(
+                        GetX<SingleGameController>(
                           init: controller,
                           builder: (_) {
                             return buildTimerSection(controller.timeLeft.value);
                           },
                         ),
                         const SizedBox(height: 16),
-                        GetX<MemoryGameController>(
+                        GetX<SingleGameController>(
                           builder: (_) {
                             return buildScoreAndSteps(controller.score.value,
                                 controller.totalPairs, controller.steps.value);
@@ -56,7 +54,7 @@ class MemoryGameScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGameGrid(MemoryGameController controller) {
+  Widget _buildGameGrid(SingleGameController controller) {
     return GridView.builder(
       padding: const EdgeInsets.all(8),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -67,7 +65,7 @@ class MemoryGameScreen extends StatelessWidget {
       ),
       itemCount: controller.numbers.length,
       itemBuilder: (context, index) {
-        return GetX<MemoryGameController>(
+        return GetX<SingleGameController>(
           builder: (_) {
             return GestureDetector(
               onTap: () => controller.onCardTap(index),

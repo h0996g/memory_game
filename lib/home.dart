@@ -1,6 +1,6 @@
 import 'package:card/components/const.dart';
-import 'package:card/screen/local_multiplayer/GameController.dart';
-import 'package:card/screen/single_player/MemoryGameController.dart';
+import 'package:card/screen/local_multiplayer/local_multiplayer_controller.dart';
+import 'package:card/screen/single_player/single_game_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -30,12 +30,12 @@ class HomePage extends StatelessWidget {
                       children: [
                         buildButton(context, 'Single Player', Icons.person,
                             const Color(0xFFE57373), () {
-                          Get.delete<MemoryGameController>();
+                          Get.delete<SingleGameController>();
                           Get.toNamed('/single-player');
                         }),
                         buildButton(context, 'Local Multiplayer', Icons.people,
                             const Color(0xFF81C784), () {
-                          Get.delete<GameController>();
+                          Get.delete<LocalMultiplayerController>();
                           Get.toNamed('/local-multiplayer');
                         }),
                         buildButton(context, 'Online Multiplayer', Icons.cloud,
