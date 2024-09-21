@@ -1,6 +1,6 @@
-import 'package:card/local_multiplayer_game.dart';
-import 'package:card/MemoryGameScreen.dart';
-import 'package:card/online_multiplayer_game_screen.dart';
+import 'package:card/screen/local_multiplayer/local_multiplayer_game.dart';
+import 'package:card/screen/single_player/MemoryGameScreen.dart';
+import 'package:card/screen/online_multiplayer/online_multiplayer_game_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
