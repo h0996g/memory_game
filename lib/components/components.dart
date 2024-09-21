@@ -1,6 +1,38 @@
 import 'package:card/widget/compact_player_card.dart';
 import 'package:flutter/material.dart';
 
+Widget buildAppBar(String title, BuildContext context) {
+  return Container(
+    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+    decoration: const BoxDecoration(
+      gradient: LinearGradient(
+        colors: [Color(0xFFFF9800), Color(0xFFFF5722)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(width: 48), // To balance the back button
+      ],
+    ),
+  );
+}
+
+//------------------------Local Multiplayer Game------------------------
 Widget buildProgressBar(_timeLeftPlayer1, _timeLeftPlayer2) {
   return LinearProgressIndicator(
     value: (_timeLeftPlayer1 + _timeLeftPlayer2) / 60,
@@ -93,14 +125,14 @@ Widget buildCardFront() {
   );
 }
 
-Widget buildCardBack(int index, _numbers) {
+Widget buildCardBack(int index, numbers) {
   return Card(
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     elevation: 4,
     color: const Color(0xFFFF9800),
     child: Center(
       child: Text(
-        '${_numbers[index]}',
+        '${numbers[index]}',
         style: const TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.bold,
@@ -110,3 +142,5 @@ Widget buildCardBack(int index, _numbers) {
     ),
   );
 }
+
+// -----------------------End of Local Multiplayer Game-----------------------

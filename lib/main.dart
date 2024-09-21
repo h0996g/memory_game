@@ -1,6 +1,8 @@
 import 'package:card/home.dart';
+import 'package:card/screen/local_multiplayer/local_multiplayer_game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 void main() {
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
@@ -15,7 +17,11 @@ class MemoryGameApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
+      routes: {
+        '/': (context) => HomePage(),
+        '/local-multiplayer': (context) => LocalMultiplayerGameScreen(),
+      },
       debugShowCheckedModeBanner: false,
       title: 'Number Memory Game',
       theme: ThemeData(
@@ -31,7 +37,7 @@ class MemoryGameApp extends StatelessWidget {
             centerTitle: true,
           ),
           scaffoldBackgroundColor: Colors.white),
-      home: const HomePage(),
+      // home: const HomePage(),
     );
   }
 }

@@ -1,7 +1,8 @@
-import 'package:card/screen/local_multiplayer/local_multiplayer_game.dart';
+import 'package:card/screen/local_multiplayer/GameController.dart';
 import 'package:card/screen/single_player/MemoryGameScreen.dart';
 import 'package:card/screen/online_multiplayer/online_multiplayer_game_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends StatelessWidget {
@@ -37,18 +38,18 @@ class HomePage extends StatelessWidget {
                                 builder: (context) => const MemoryGameScreen()),
                           ),
                         ),
-                        _buildButton(
-                          context,
-                          'Local Multiplayer',
-                          Icons.people,
-                          const Color(0xFF81C784),
-                          () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    const LocalMultiplayerGameScreen()),
-                          ),
-                        ),
+                        _buildButton(context, 'Local Multiplayer', Icons.people,
+                            const Color(0xFF81C784), () {
+                          Get.delete<GameController>();
+                          Get.toNamed('/local-multiplayer');
+                        }
+                            // () => Navigator.push(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //       builder: (context) =>
+                            //           LocalMultiplayerGameScreen()),
+                            // ),
+                            ),
                         _buildButton(
                           context,
                           'Online Multiplayer',
