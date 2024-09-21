@@ -1,49 +1,48 @@
 import 'package:card/home.dart';
-import 'package:card/screen/local_multiplayer/local_multiplayer_game.dart';
-import 'package:card/screen/online_multiplayer/online_multiplayer_game_screen.dart';
-import 'package:card/screen/single_player/local_single_game.dart';
-import 'package:card/util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Color.fromARGB(187, 255, 86, 34), // Orange color
-    statusBarIconBrightness: Brightness.light, // For light icons
-  ));
+void main() {
   runApp(const MemoryGameApp());
 }
 
 class MemoryGameApp extends StatelessWidget {
-  const MemoryGameApp({super.key});
+  const MemoryGameApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      routes: {
-        '/': (context) => HomePage(),
-        '/local-multiplayer': (context) => LocalMultiplayerGameScreen(),
-        '/single-player': (context) => SingleGameScreen(),
-        '/online-multiplayer': (context) => OnlineMultiplayerGameScreen(),
-      },
       debugShowCheckedModeBanner: false,
-      title: 'Number Memory Game',
+      title: 'Memory Game',
       theme: ThemeData(
-          primarySwatch: Colors.green,
-          fontFamily: 'Roboto',
-          appBarTheme: AppBarTheme(
-            iconTheme: const IconThemeData(color: Colors.black),
-            // color: Colors.white,
-            backgroundColor: Colors.brown[800], // Primary color for the app bar
-
-            titleTextStyle: const TextStyle(fontSize: 30, color: Colors.white),
-            actionsIconTheme: const IconThemeData(color: Colors.white),
-            centerTitle: true,
-          ),
-          scaffoldBackgroundColor: Colors.white),
-      // home: const HomePage(),
+        brightness: Brightness.light,
+        primarySwatch: Colors.orange,
+        scaffoldBackgroundColor: const Color(0xFFF5F5F5),
+        appBarTheme: const AppBarTheme(
+          systemOverlayStyle: SystemUiOverlayStyle(
+              statusBarIconBrightness: Brightness.light,
+              statusBarColor: Colors.orange),
+          backgroundColor: Color(0xFFFF9800),
+          foregroundColor: Colors.white,
+        ),
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        primarySwatch: Colors.orange,
+        scaffoldBackgroundColor: const Color(0xFF121212),
+        appBarTheme: const AppBarTheme(
+          systemOverlayStyle: SystemUiOverlayStyle(
+              statusBarIconBrightness: Brightness.light,
+              statusBarColor: Colors.black),
+          backgroundColor: Color(0xFF1F1F1F),
+          foregroundColor: Colors.white,
+        ),
+        cardColor: const Color(0xFF2C2C2C),
+        dialogBackgroundColor: const Color(0xFF1F1F1F),
+      ),
+      themeMode: ThemeMode.system,
+      home: const HomePage(),
     );
   }
 }

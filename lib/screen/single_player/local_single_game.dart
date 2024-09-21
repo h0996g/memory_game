@@ -12,11 +12,11 @@ class SingleGameScreen extends StatelessWidget {
     final controller = Get.put(SingleGameController());
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      // backgroundColor: const Color(0xFFF5F5F5),
       body: SafeArea(
         child: Stack(
           children: [
-            buildBackgroundShapes(),
+            buildBackgroundShapes(context),
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -30,14 +30,18 @@ class SingleGameScreen extends StatelessWidget {
                         GetX<SingleGameController>(
                           init: controller,
                           builder: (_) {
-                            return buildTimerSection(controller.timeLeft.value);
+                            return buildTimerSection(
+                                controller.timeLeft.value, context);
                           },
                         ),
                         const SizedBox(height: 16),
                         GetX<SingleGameController>(
                           builder: (_) {
-                            return buildScoreAndSteps(controller.score.value,
-                                controller.totalPairs, controller.steps.value);
+                            return buildScoreAndSteps(
+                                controller.score.value,
+                                controller.totalPairs,
+                                controller.steps.value,
+                                context);
                           },
                         ),
                         const SizedBox(height: 16),
@@ -80,11 +84,12 @@ class SingleGameScreen extends StatelessWidget {
                       ..rotateY(value),
                     alignment: Alignment.center,
                     child: value < pi / 2
-                        ? buildCardFront()
+                        ? buildCardFront(context)
                         : Transform(
                             transform: Matrix4.identity()..rotateY(pi),
                             alignment: Alignment.center,
-                            child: buildCardBack(index, controller.numbers),
+                            child: buildCardBack(
+                                index, controller.numbers, context),
                           ),
                   );
                 },

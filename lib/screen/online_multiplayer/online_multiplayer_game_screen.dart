@@ -12,11 +12,11 @@ class OnlineMultiplayerGameScreen extends StatelessWidget {
     final OnlineGameController gameController = Get.put(OnlineGameController());
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      // backgroundColor: const Color(0xFFF5F5F5),
       body: SafeArea(
         child: Stack(
           children: [
-            buildBackgroundShapes(),
+            buildBackgroundShapes(context),
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -31,27 +31,28 @@ class OnlineMultiplayerGameScreen extends StatelessWidget {
                           children: [
                             if (!gameController.isConnected.value)
                               buildConnectionStatus(
-                                gameController.connectionTimedOut.value,
-                                gameController.connectToServer,
-                              ),
+                                  gameController.connectionTimedOut.value,
+                                  gameController.connectToServer,
+                                  context),
                             if (gameController.isConnected.value &&
                                 !gameController.isGameActive.value)
                               buildLobbyArea(
-                                gameController.roomIdController,
-                                gameController.roomId.value,
-                                gameController.createRoom,
-                                gameController.joinRoom,
-                                gameController.isWaiting.value,
-                              ),
+                                  gameController.roomIdController,
+                                  gameController.roomId.value,
+                                  gameController.createRoom,
+                                  gameController.joinRoom,
+                                  gameController.isWaiting.value,
+                                  context),
                             if (gameController.isConnected.value &&
                                 gameController.isGameActive.value) ...[
                               buildPlayerCards2(
-                                gameController.scorePlayer1.value,
-                                gameController.scorePlayer2.value,
-                                gameController.currentPlayer.value,
-                              ),
+                                  gameController.scorePlayer1.value,
+                                  gameController.scorePlayer2.value,
+                                  gameController.currentPlayer.value,
+                                  context),
                               const SizedBox(height: 16),
-                              buildTurnIndicator(gameController.isMyTurn.value),
+                              buildTurnIndicator(
+                                  gameController.isMyTurn.value, context),
                               const SizedBox(height: 16),
                               Expanded(child: _buildGameGrid(gameController)),
                             ],
@@ -107,12 +108,12 @@ class OnlineMultiplayerGameScreen extends StatelessWidget {
                           ..rotateY(value),
                         alignment: Alignment.center,
                         child: value < pi / 2
-                            ? buildCardFront()
+                            ? buildCardFront(context)
                             : Transform(
                                 transform: Matrix4.identity()..rotateY(pi),
                                 alignment: Alignment.center,
                                 child: buildCardBack(
-                                    index, gameController.numbers),
+                                    index, gameController.numbers, context),
                               ),
                       );
                     },

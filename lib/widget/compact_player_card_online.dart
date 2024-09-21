@@ -5,27 +5,31 @@ class CompactPlayerCardOnline extends StatelessWidget {
   final int score;
   final bool isActive;
   final Color color;
+  final bool isDarkMode;
 
   const CompactPlayerCardOnline({
-    super.key,
+    Key? key,
     required this.player,
     required this.score,
     required this.isActive,
     required this.color,
-  });
+    required this.isDarkMode,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode ? Colors.grey[900] : Colors.white,
         borderRadius: BorderRadius.circular(12),
         border:
             Border.all(color: isActive ? color : Colors.transparent, width: 2),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
+            color: isDarkMode
+                ? Colors.black.withOpacity(0.5)
+                : color.withOpacity(0.3),
             spreadRadius: 1,
             blurRadius: 6,
             offset: const Offset(0, 3),
@@ -40,7 +44,7 @@ class CompactPlayerCardOnline extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: color,
+              color: isDarkMode ? Colors.orange[100] : color,
             ),
           ),
           Text(
@@ -48,7 +52,9 @@ class CompactPlayerCardOnline extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: isActive ? color : Colors.grey[800],
+              color: isActive
+                  ? (isDarkMode ? Colors.orange[100] : color)
+                  : (isDarkMode ? Colors.orange[200] : Colors.grey[800]),
             ),
           ),
         ],

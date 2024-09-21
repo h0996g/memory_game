@@ -18,16 +18,22 @@ class CompactPlayerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode ? Colors.grey[800] : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border:
-            Border.all(color: isActive ? color : Colors.transparent, width: 2),
+        border: Border.all(
+          color: isActive ? color : Colors.transparent,
+          width: 2,
+        ),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
+            color: isDarkMode
+                ? Colors.black.withOpacity(0.3)
+                : color.withOpacity(0.3),
             spreadRadius: 1,
             blurRadius: 6,
             offset: const Offset(0, 3),
@@ -42,7 +48,7 @@ class CompactPlayerCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: color,
+              color: isDarkMode ? Colors.white : color,
             ),
           ),
           Row(
@@ -50,29 +56,42 @@ class CompactPlayerCard extends StatelessWidget {
             children: [
               Column(
                 children: [
-                  const Text('Score',
-                      style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  Text(
+                    'Score',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDarkMode ? Colors.grey[400] : Colors.grey,
+                    ),
+                  ),
                   Text(
                     '$score',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: color,
+                      color: isDarkMode ? Colors.white : color,
                     ),
                   ),
                 ],
               ),
               Column(
                 children: [
-                  const Text('Time',
-                      style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  Text(
+                    'Time',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDarkMode ? Colors.grey[400] : Colors.grey,
+                    ),
+                  ),
                   Text(
                     '${timeLeft}s',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color:
-                          timeLeft <= 10 ? Colors.red : const Color(0xFF81C784),
+                      color: timeLeft <= 10
+                          ? Colors.red
+                          : (isDarkMode
+                              ? Colors.green[300]
+                              : const Color(0xFF81C784)),
                     ),
                   ),
                 ],
