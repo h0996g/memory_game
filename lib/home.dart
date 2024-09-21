@@ -1,7 +1,6 @@
 import 'package:card/components/const.dart';
 import 'package:card/screen/local_multiplayer/GameController.dart';
 import 'package:card/screen/single_player/MemoryGameController.dart';
-import 'package:card/screen/online_multiplayer/online_multiplayer_game_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -39,18 +38,10 @@ class HomePage extends StatelessWidget {
                           Get.delete<GameController>();
                           Get.toNamed('/local-multiplayer');
                         }),
-                        buildButton(
-                          context,
-                          'Online Multiplayer',
-                          Icons.cloud,
-                          const Color(0xFFFFB74D),
-                          () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    const OnlineMultiplayerGameScreen()),
-                          ),
-                        ),
+                        buildButton(context, 'Online Multiplayer', Icons.cloud,
+                            const Color(0xFFFFB74D), () {
+                          Get.toNamed('/online-multiplayer');
+                        }),
                         buildButton(
                           context,
                           'About',

@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:card/widget/compact_player_card_online.dart';
+import 'package:card/components/components.dart';
 import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'dart:async';
@@ -398,23 +398,28 @@ class _OnlineMultiplayerGameScreenState
       body: SafeArea(
         child: Stack(
           children: [
-            _buildBackgroundShapes(),
+            buildBackgroundShapes(),
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildAppBar(),
+                buildAppBar('Online', context),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        if (!isConnected) _buildConnectionStatus(),
-                        if (isConnected && !_isGameActive) _buildLobbyArea(),
+                        if (!isConnected)
+                          buildConnectionStatus(
+                              _connectionTimedOut, connectToServer),
+                        if (isConnected && !_isGameActive)
+                          buildLobbyArea(roomIdController, roomId, _createRoom,
+                              _joinRoom, isWaiting),
                         if (isConnected && _isGameActive) ...[
-                          _buildPlayerCards(),
+                          buildPlayerCards2(
+                              _scorePlayer1, _scorePlayer2, _currentPlayer),
                           const SizedBox(height: 16),
-                          _buildTurnIndicator(),
+                          buildTurnIndicator(_isMyTurn),
                           const SizedBox(height: 16),
                           Expanded(child: _buildGameGrid()),
                         ],
@@ -426,194 +431,6 @@ class _OnlineMultiplayerGameScreenState
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildBackgroundShapes() {
-    return Stack(
-      children: [
-        Positioned(
-          top: -50,
-          left: -50,
-          child: _buildShape(200, const Color(0xFFFFCCBC).withOpacity(0.5)),
-        ),
-        Positioned(
-          bottom: -30,
-          right: -30,
-          child: _buildShape(150, const Color(0xFFB2DFDB).withOpacity(0.5)),
-        ),
-        Positioned(
-          top: 100,
-          right: -20,
-          child: _buildShape(100, const Color(0xFFFFECB3).withOpacity(0.5)),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildShape(double size, Color color) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.3),
-            blurRadius: 20,
-            spreadRadius: 5,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAppBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFFFF9800), Color(0xFFFF5722)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
-          const Text(
-            'Online',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(width: 48), // To balance the back button
-        ],
-      ),
-    );
-  }
-
-  Widget _buildConnectionStatus() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Text(
-          'Connecting to server...',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 20),
-        if (!_connectionTimedOut)
-          const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF9800)))
-        else
-          _buildButton(
-            'Retry Connection',
-            Icons.refresh,
-            const Color(0xFFFF9800),
-            connectToServer,
-          ),
-      ],
-    );
-  }
-
-  Widget _buildLobbyArea() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildButton(
-          'Create Room',
-          Icons.add,
-          const Color(0xFFFF9800),
-          _createRoom,
-        ),
-        const SizedBox(height: 20),
-        TextField(
-          controller: roomIdController,
-          decoration: InputDecoration(
-            labelText: 'Room ID',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFFF9800)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFFF5722), width: 2),
-            ),
-            filled: true,
-            fillColor: Colors.white,
-          ),
-        ),
-        const SizedBox(height: 20),
-        _buildButton(
-          'Join Room',
-          Icons.login,
-          const Color(0xFFFF5722),
-          _joinRoom,
-        ),
-        if (roomId.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 20),
-            child: Text('Room ID: $roomId',
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          ),
-        if (isWaiting)
-          const Padding(
-            padding: EdgeInsets.only(top: 20),
-            child: Text('Waiting for opponent...',
-                style: TextStyle(fontSize: 18, fontStyle: FontStyle.italic)),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildPlayerCards() {
-    return Row(
-      children: [
-        Expanded(
-          child: CompactPlayerCardOnline(
-            player: 'Player 1',
-            score: _scorePlayer1,
-            isActive: _currentPlayer == 1,
-            color: const Color(0xFFFF9800),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: CompactPlayerCardOnline(
-            player: 'Player 2',
-            score: _scorePlayer2,
-            isActive: _currentPlayer == 2,
-            color: const Color(0xFFFF5722),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTurnIndicator() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      decoration: BoxDecoration(
-        color: _isMyTurn ? const Color(0xFFFF9800) : const Color(0xFFFF5722),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        _isMyTurn ? 'Your Turn' : 'Opponent\'s Turn',
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-        textAlign: TextAlign.center,
       ),
     );
   }
@@ -652,11 +469,11 @@ class _OnlineMultiplayerGameScreenState
                       ..rotateY(value),
                     alignment: Alignment.center,
                     child: value < pi / 2
-                        ? _buildCardFront()
+                        ? buildCardFront()
                         : Transform(
                             transform: Matrix4.identity()..rotateY(pi),
                             alignment: Alignment.center,
-                            child: _buildCardBack(index),
+                            child: buildCardBack(index, _numbers),
                           ),
                   );
                 },
@@ -665,85 +482,6 @@ class _OnlineMultiplayerGameScreenState
           },
         );
       },
-    );
-  }
-
-  Widget _buildCardFront() {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: Colors.white,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFFF9800), width: 2),
-        ),
-        child: const Center(
-          child: Icon(Icons.question_mark, size: 40, color: Color(0xFFFF9800)),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCardBack(int index) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 4,
-      color: const Color(0xFFFF9800),
-      child: Center(
-        child: Text(
-          '${_numbers[index]}',
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildButton(
-      String text, IconData icon, Color color, VoidCallback onPressed) {
-    return Container(
-      width: 250,
-      height: 60,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.3),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(12),
-          child: Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, color: Colors.white),
-                const SizedBox(width: 10),
-                Text(
-                  text,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

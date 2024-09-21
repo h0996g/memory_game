@@ -1,4 +1,5 @@
 import 'package:card/widget/compact_player_card.dart';
+import 'package:card/widget/compact_player_card_online.dart';
 import 'package:flutter/material.dart';
 
 Widget buildAppBar(String title, BuildContext context) {
@@ -359,3 +360,166 @@ Widget buildInfoItem(IconData icon, String label, String value) {
 }
 
 // -----------------------End of Single Player Game-----------------------
+
+// ! -----------------------Online Game-----------------------
+Widget buildConnectionStatus(connectionTimedOut, connectToServer) {
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      const Text(
+        'Connecting to server...',
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 20),
+      if (!connectionTimedOut)
+        const CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF9800)))
+      else
+        buildButton2(
+          'Retry Connection',
+          Icons.refresh,
+          const Color(0xFFFF9800),
+          connectToServer,
+        ),
+    ],
+  );
+}
+
+Widget buildLobbyArea(
+    roomIdController, roomId, createRoom, joinRoom, isWaiting) {
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      buildButton2(
+        'Create Room',
+        Icons.add,
+        const Color(0xFFFF9800),
+        createRoom,
+      ),
+      const SizedBox(height: 20),
+      TextField(
+        controller: roomIdController,
+        decoration: InputDecoration(
+          labelText: 'Room ID',
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFFFF9800)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFFFF5722), width: 2),
+          ),
+          filled: true,
+          fillColor: Colors.white,
+        ),
+      ),
+      const SizedBox(height: 20),
+      buildButton2(
+        'Join Room',
+        Icons.login,
+        const Color(0xFFFF5722),
+        joinRoom,
+      ),
+      if (roomId.isNotEmpty)
+        Padding(
+          padding: const EdgeInsets.only(top: 20),
+          child: Text('Room ID: $roomId',
+              style:
+                  const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        ),
+      if (isWaiting)
+        const Padding(
+          padding: EdgeInsets.only(top: 20),
+          child: Text('Waiting for opponent...',
+              style: TextStyle(fontSize: 18, fontStyle: FontStyle.italic)),
+        ),
+    ],
+  );
+}
+
+Widget buildButton2(
+    String text, IconData icon, Color color, VoidCallback onPressed) {
+  return Container(
+    width: 250,
+    height: 60,
+    decoration: BoxDecoration(
+      color: color,
+      borderRadius: BorderRadius.circular(12),
+      boxShadow: [
+        BoxShadow(
+          color: color.withOpacity(0.3),
+          spreadRadius: 1,
+          blurRadius: 5,
+          offset: const Offset(0, 3),
+        ),
+      ],
+    ),
+    child: Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(12),
+        child: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.white),
+              const SizedBox(width: 10),
+              Text(
+                text,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+Widget buildPlayerCards2(scorePlayer1, scorePlayer2, currentPlayer) {
+  return Row(
+    children: [
+      Expanded(
+        child: CompactPlayerCardOnline(
+          player: 'Player 1',
+          score: scorePlayer1,
+          isActive: currentPlayer == 1,
+          color: const Color(0xFFFF9800),
+        ),
+      ),
+      const SizedBox(width: 16),
+      Expanded(
+        child: CompactPlayerCardOnline(
+          player: 'Player 2',
+          score: scorePlayer2,
+          isActive: currentPlayer == 2,
+          color: const Color(0xFFFF5722),
+        ),
+      ),
+    ],
+  );
+}
+
+Widget buildTurnIndicator(isMyTurn) {
+  return Container(
+    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+    decoration: BoxDecoration(
+      color: isMyTurn ? const Color(0xFFFF9800) : const Color(0xFFFF5722),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Text(
+      isMyTurn ? 'Your Turn' : 'Opponent\'s Turn',
+      style: const TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+      textAlign: TextAlign.center,
+    ),
+  );
+}

@@ -1,5 +1,6 @@
 import 'package:card/home.dart';
 import 'package:card/screen/local_multiplayer/local_multiplayer_game.dart';
+import 'package:card/screen/online_multiplayer/online_multiplayer_game_screen.dart';
 import 'package:card/screen/single_player/MemoryGameScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -23,6 +24,7 @@ class MemoryGameApp extends StatelessWidget {
         '/': (context) => HomePage(),
         '/local-multiplayer': (context) => LocalMultiplayerGameScreen(),
         '/single-player': (context) => MemoryGameScreen(),
+        '/online-multiplayer': (context) => OnlineMultiplayerGameScreen(),
       },
       debugShowCheckedModeBanner: false,
       title: 'Number Memory Game',
