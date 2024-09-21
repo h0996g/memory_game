@@ -1,6 +1,7 @@
 import 'package:card/components/const.dart';
-import 'package:card/screen/local_multiplayer/local_multiplayer_controller.dart';
-import 'package:card/screen/single_player/single_game_controller.dart';
+import 'package:card/screen/local_multiplayer/local_multiplayer_game.dart';
+import 'package:card/screen/online_multiplayer/online_multiplayer_game_screen.dart';
+import 'package:card/screen/single_player/local_single_game.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -30,17 +31,17 @@ class HomePage extends StatelessWidget {
                       children: [
                         buildButton(context, 'Single Player', Icons.person,
                             const Color(0xFFE57373), () {
-                          Get.delete<SingleGameController>();
-                          Get.toNamed('/single-player');
+                          Get.to(() => const SingleGameScreen());
                         }),
                         buildButton(context, 'Local Multiplayer', Icons.people,
                             const Color(0xFF81C784), () {
-                          Get.delete<LocalMultiplayerController>();
-                          Get.toNamed('/local-multiplayer');
+                          Get.to(() => const LocalMultiplayerGameScreen());
                         }),
                         buildButton(context, 'Online Multiplayer', Icons.cloud,
                             const Color(0xFFFFB74D), () {
-                          Get.toNamed('/online-multiplayer');
+                          Get.to(
+                            () => const OnlineMultiplayerGameScreen(),
+                          );
                         }),
                         buildButton(
                           context,
