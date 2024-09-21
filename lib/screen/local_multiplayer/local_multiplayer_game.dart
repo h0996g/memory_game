@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:card/components/components.dart';
 import 'package:flutter/material.dart';
 
 class LocalMultiplayerGameScreen extends StatefulWidget {
@@ -184,7 +185,7 @@ class _LocalMultiplayerGameScreenState extends State<LocalMultiplayerGameScreen>
       body: SafeArea(
         child: Stack(
           children: [
-            _buildBackgroundShapes(),
+            buildBackgroundShapes(),
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -195,9 +196,10 @@ class _LocalMultiplayerGameScreenState extends State<LocalMultiplayerGameScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _buildPlayerCards(),
+                        buildPlayerCards(_scorePlayer1, _timeLeftPlayer1,
+                            _scorePlayer2, _timeLeftPlayer2, _currentPlayer),
                         const SizedBox(height: 16),
-                        _buildProgressBar(),
+                        buildProgressBar(_timeLeftPlayer1, _timeLeftPlayer2),
                         const SizedBox(height: 16),
                         Expanded(child: _buildGameGrid()),
                       ],
@@ -208,46 +210,6 @@ class _LocalMultiplayerGameScreenState extends State<LocalMultiplayerGameScreen>
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildBackgroundShapes() {
-    return Stack(
-      children: [
-        Positioned(
-          top: -50,
-          left: -50,
-          child: _buildShape(200, const Color(0xFFFFCCBC).withOpacity(0.5)),
-        ),
-        Positioned(
-          bottom: -30,
-          right: -30,
-          child: _buildShape(150, const Color(0xFFB2DFDB).withOpacity(0.5)),
-        ),
-        Positioned(
-          top: 100,
-          right: -20,
-          child: _buildShape(100, const Color(0xFFFFECB3).withOpacity(0.5)),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildShape(double size, Color color) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.3),
-            blurRadius: 20,
-            spreadRadius: 5,
-          ),
-        ],
       ),
     );
   }
@@ -280,40 +242,6 @@ class _LocalMultiplayerGameScreenState extends State<LocalMultiplayerGameScreen>
           const SizedBox(width: 48), // To balance the back button
         ],
       ),
-    );
-  }
-
-  Widget _buildPlayerCards() {
-    return Row(
-      children: [
-        Expanded(
-          child: CompactPlayerCard(
-            player: 'Player 1',
-            score: _scorePlayer1,
-            timeLeft: _timeLeftPlayer1,
-            isActive: _currentPlayer == 1,
-            color: const Color(0xFFE57373),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: CompactPlayerCard(
-            player: 'Player 2',
-            score: _scorePlayer2,
-            timeLeft: _timeLeftPlayer2,
-            isActive: _currentPlayer == 2,
-            color: const Color(0xFF81C784),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildProgressBar() {
-    return LinearProgressIndicator(
-      value: (_timeLeftPlayer1 + _timeLeftPlayer2) / 60,
-      backgroundColor: const Color(0xFFFFCCBC).withOpacity(0.3),
-      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFF9800)),
     );
   }
 
@@ -351,11 +279,11 @@ class _LocalMultiplayerGameScreenState extends State<LocalMultiplayerGameScreen>
                       ..rotateY(value),
                     alignment: Alignment.center,
                     child: value < pi / 2
-                        ? _buildCardFront()
+                        ? buildCardFront()
                         : Transform(
                             transform: Matrix4.identity()..rotateY(pi),
                             alignment: Alignment.center,
-                            child: _buildCardBack(index),
+                            child: buildCardBack(index, _numbers),
                           ),
                   );
                 },
@@ -364,128 +292,6 @@ class _LocalMultiplayerGameScreenState extends State<LocalMultiplayerGameScreen>
           },
         );
       },
-    );
-  }
-
-  Widget _buildCardFront() {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: Colors.white,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFFF9800), width: 2),
-        ),
-        child: const Center(
-          child: Icon(Icons.question_mark, size: 40, color: Color(0xFFFF9800)),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCardBack(int index) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 4,
-      color: const Color(0xFFFF9800),
-      child: Center(
-        child: Text(
-          '${_numbers[index]}',
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ... (keep all other methods)
-}
-
-class CompactPlayerCard extends StatelessWidget {
-  final String player;
-  final int score;
-  final int timeLeft;
-  final bool isActive;
-  final Color color;
-
-  const CompactPlayerCard({
-    super.key,
-    required this.player,
-    required this.score,
-    required this.timeLeft,
-    required this.isActive,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border:
-            Border.all(color: isActive ? color : Colors.transparent, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.3),
-            spreadRadius: 1,
-            blurRadius: 6,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Text(
-            player,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Column(
-                children: [
-                  const Text('Score',
-                      style: TextStyle(fontSize: 12, color: Colors.grey)),
-                  Text(
-                    '$score',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: color,
-                    ),
-                  ),
-                ],
-              ),
-              Column(
-                children: [
-                  const Text('Time',
-                      style: TextStyle(fontSize: 12, color: Colors.grey)),
-                  Text(
-                    '${timeLeft}s',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color:
-                          timeLeft <= 10 ? Colors.red : const Color(0xFF81C784),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }

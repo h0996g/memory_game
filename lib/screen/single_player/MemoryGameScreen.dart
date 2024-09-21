@@ -3,7 +3,7 @@ import 'dart:async';
 import 'dart:math';
 
 class MemoryGameScreen extends StatefulWidget {
-  const MemoryGameScreen({Key? key}) : super(key: key);
+  const MemoryGameScreen({super.key});
 
   @override
   _MemoryGameScreenState createState() => _MemoryGameScreenState();

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:card/widget/compact_player_card_online.dart';
 import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'dart:async';
@@ -578,7 +579,7 @@ class _OnlineMultiplayerGameScreenState
     return Row(
       children: [
         Expanded(
-          child: CompactPlayerCard(
+          child: CompactPlayerCardOnline(
             player: 'Player 1',
             score: _scorePlayer1,
             isActive: _currentPlayer == 1,
@@ -587,7 +588,7 @@ class _OnlineMultiplayerGameScreenState
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: CompactPlayerCard(
+          child: CompactPlayerCardOnline(
             player: 'Player 2',
             score: _scorePlayer2,
             isActive: _currentPlayer == 2,
@@ -742,65 +743,6 @@ class _OnlineMultiplayerGameScreenState
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  // ... (keep all other methods)
-}
-
-class CompactPlayerCard extends StatelessWidget {
-  final String player;
-  final int score;
-  final bool isActive;
-  final Color color;
-
-  const CompactPlayerCard({
-    super.key,
-    required this.player,
-    required this.score,
-    required this.isActive,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border:
-            Border.all(color: isActive ? color : Colors.transparent, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.3),
-            spreadRadius: 1,
-            blurRadius: 6,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Text(
-            player,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          Text(
-            'Score: $score',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: isActive ? color : Colors.grey[800],
-            ),
-          ),
-        ],
       ),
     );
   }
