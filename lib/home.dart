@@ -1,8 +1,8 @@
+import 'package:card/components/widget/appbar.dart';
 import 'package:card/components/const.dart';
 import 'package:card/screen/local_multiplayer/local_multiplayer_game.dart';
 import 'package:card/screen/online_multiplayer/online_multiplayer_game_screen.dart';
 import 'package:card/screen/single_player/local_single_game.dart';
-import 'package:card/theme_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -13,19 +13,11 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeController themeController = Get.put(ThemeController());
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Memory Game'),
-        actions: [
-          Obx(() => IconButton(
-                icon: Icon(themeController.isDarkMode
-                    ? Icons.light_mode
-                    : Icons.dark_mode),
-                onPressed: themeController.toggleTheme,
-              )),
-        ],
+      appBar: buildAppBar(
+        title: 'Memory Game',
+        context: context,
+        showBackButton: false,
       ),
       // backgroundColor: const Color(0xFFF5F5F5),
       body: Stack(

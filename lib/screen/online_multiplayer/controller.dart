@@ -49,7 +49,7 @@ class OnlineGameController extends GetxController {
     isConnected.value = false;
     connectionTimedOut.value = false;
 
-    Timer(const Duration(seconds: 5), () {
+    Timer(const Duration(seconds: 15), () {
       if (!isConnected.value) {
         connectionTimedOut.value = true;
       }

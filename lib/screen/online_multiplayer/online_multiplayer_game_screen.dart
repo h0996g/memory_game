@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:card/components/widget/appbar.dart';
 import 'package:card/screen/online_multiplayer/controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -12,6 +13,10 @@ class OnlineMultiplayerGameScreen extends StatelessWidget {
     final OnlineGameController gameController = Get.put(OnlineGameController());
 
     return Scaffold(
+      appBar: buildAppBar(
+        title: 'Online Multiplayer',
+        context: context,
+      ),
       // backgroundColor: const Color(0xFFF5F5F5),
       body: SafeArea(
         child: Stack(
@@ -20,7 +25,7 @@ class OnlineMultiplayerGameScreen extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                buildAppBar('Online', context),
+                // buildAppBar('Online', context),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),

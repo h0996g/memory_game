@@ -1,8 +1,10 @@
 import 'dart:math';
+import 'package:card/components/widget/appbar.dart';
 import 'package:card/screen/local_multiplayer/local_multiplayer_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:card/components/components.dart';
+import 'package:get/get_state_manager/get_state_manager.dart';
 
 class LocalMultiplayerGameScreen extends StatelessWidget {
   const LocalMultiplayerGameScreen({super.key});
@@ -16,6 +18,10 @@ class LocalMultiplayerGameScreen extends StatelessWidget {
         () => _showGameOverDialog(context, gameController));
 
     return Scaffold(
+      appBar: buildAppBar(
+        title: 'Local Multiplayer',
+        context: context,
+      ),
       // backgroundColor: const Color(0xFFF5F5F5),
       body: SafeArea(
         child: Stack(
@@ -24,25 +30,26 @@ class LocalMultiplayerGameScreen extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                buildAppBar('Memory Game', context),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Obx(() => buildPlayerCards(
-                            gameController.scorePlayer1.value,
-                            gameController.timeLeftPlayer1.value,
-                            gameController.scorePlayer2.value,
-                            gameController.timeLeftPlayer2.value,
-                            gameController.currentPlayer.value,
-                            context)),
+                        GetX<LocalMultiplayerController>(
+                            builder: (_) => buildPlayerCards(
+                                gameController.scorePlayer1.value,
+                                gameController.timeLeftPlayer1.value,
+                                gameController.scorePlayer2.value,
+                                gameController.timeLeftPlayer2.value,
+                                gameController.currentPlayer.value,
+                                context)),
                         const SizedBox(height: 16),
-                        Obx(() => buildProgressBar(
-                            gameController.timeLeftPlayer1.value,
-                            gameController.timeLeftPlayer2.value,
-                            context)),
+                        GetX<LocalMultiplayerController>(
+                            builder: (_) => buildProgressBar(
+                                gameController.timeLeftPlayer1.value,
+                                gameController.timeLeftPlayer2.value,
+                                context)),
                         const SizedBox(height: 16),
                         Expanded(child: _buildGameGrid(gameController)),
                       ],
@@ -117,31 +124,33 @@ class LocalMultiplayerGameScreen extends StatelessWidget {
             if (index >= gameController.numbers.length) {
               return const SizedBox();
             }
-            return Obx(() => GestureDetector(
-                  onTap: () => gameController.onCardTap(index),
-                  child: TweenAnimationBuilder(
-                    tween: Tween<double>(
-                        begin: 0, end: gameController.flipped[index] ? pi : 0),
-                    duration: const Duration(milliseconds: 300),
-                    builder:
-                        (BuildContext context, double value, Widget? child) {
-                      return Transform(
-                        transform: Matrix4.identity()
-                          ..setEntry(3, 2, 0.001)
-                          ..rotateY(value),
-                        alignment: Alignment.center,
-                        child: value < pi / 2
-                            ? buildCardFront(context)
-                            : Transform(
-                                transform: Matrix4.identity()..rotateY(pi),
-                                alignment: Alignment.center,
-                                child: buildCardBack(
-                                    index, gameController.numbers, context),
-                              ),
-                      );
-                    },
-                  ),
-                ));
+            return GetX<LocalMultiplayerController>(
+                builder: (_) => GestureDetector(
+                      onTap: () => gameController.onCardTap(index),
+                      child: TweenAnimationBuilder(
+                        tween: Tween<double>(
+                            begin: 0,
+                            end: gameController.flipped[index] ? pi : 0),
+                        duration: const Duration(milliseconds: 300),
+                        builder: (BuildContext context, double value,
+                            Widget? child) {
+                          return Transform(
+                            transform: Matrix4.identity()
+                              ..setEntry(3, 2, 0.001)
+                              ..rotateY(value),
+                            alignment: Alignment.center,
+                            child: value < pi / 2
+                                ? buildCardFront(context)
+                                : Transform(
+                                    transform: Matrix4.identity()..rotateY(pi),
+                                    alignment: Alignment.center,
+                                    child: buildCardBack(
+                                        index, gameController.numbers, context),
+                                  ),
+                          );
+                        },
+                      ),
+                    ));
           },
         );
       },

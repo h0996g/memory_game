@@ -2,44 +2,6 @@ import 'package:card/widget/compact_player_card.dart';
 import 'package:card/widget/compact_player_card_online.dart';
 import 'package:flutter/material.dart';
 
-Widget buildAppBar(String title, BuildContext context) {
-  final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-  return Container(
-    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        colors: isDarkMode
-            ? [Colors.grey[900]!, Colors.grey[800]!]
-            : [
-                const Color(0xFFFF9800),
-                const Color(0xFFFF9800),
-              ],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-    ),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(width: 48), // To balance the back button
-      ],
-    ),
-  );
-}
-
 Widget buildBackgroundShapes(BuildContext context) {
   final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 

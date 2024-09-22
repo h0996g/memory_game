@@ -1,3 +1,4 @@
+import 'package:card/components/widget/appbar.dart';
 import 'package:card/components/components.dart';
 import 'package:card/screen/single_player/single_game_controller.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +14,10 @@ class SingleGameScreen extends StatelessWidget {
 
     return Scaffold(
       // backgroundColor: const Color(0xFFF5F5F5),
+      appBar: buildAppBar(
+        title: 'Single Player',
+        context: context,
+      ),
       body: SafeArea(
         child: Stack(
           children: [
@@ -20,7 +25,7 @@ class SingleGameScreen extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                buildAppBar('Memory Game', context),
+                // buildAppBar('Memory Game', context),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
