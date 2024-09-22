@@ -11,7 +11,10 @@ Widget buildAppBar(String title, BuildContext context) {
       gradient: LinearGradient(
         colors: isDarkMode
             ? [Colors.grey[900]!, Colors.grey[800]!]
-            : [const Color(0xFFFF9800), const Color(0xFFFF5722)],
+            : [
+                const Color(0xFFFF9800),
+                const Color(0xFFFF9800),
+              ],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ),
@@ -214,6 +217,7 @@ Widget buildButton(BuildContext context, String text, IconData icon,
     ),
   );
 }
+
 //  -----------------------End of Home Screen-----------------------
 
 //!------------------------Local Multiplayer Game------------------------

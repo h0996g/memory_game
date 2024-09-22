@@ -14,6 +14,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeController themeController = Get.put(ThemeController());
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Memory Game'),

@@ -63,7 +63,7 @@ class OnlineGameController extends GetxController {
         IO.io('https://game-memory-socket-io.onrender.com', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
-      'timeout': 10000,
+      'timeout': 20000,
     });
 
     socket!.connect();
