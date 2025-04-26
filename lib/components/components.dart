@@ -412,15 +412,31 @@ Widget buildConnectionStatus(bool connectionTimedOut,
       const SizedBox(height: 20),
       if (!connectionTimedOut)
         CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(
-                isDarkMode ? Colors.orange[300]! : const Color(0xFFFF9800)))
-      else
-        buildButton2(
-            'Retry Connection',
-            Icons.refresh,
+          valueColor: AlwaysStoppedAnimation<Color>(
             isDarkMode ? Colors.orange[300]! : const Color(0xFFFF9800),
-            connectToServer,
-            context),
+          ),
+        )
+      else ...[
+        buildButton2(
+          'Retry Connection',
+          Icons.refresh,
+          isDarkMode ? Colors.orange[300]! : const Color(0xFFFF9800),
+          connectToServer,
+          context,
+        ),
+        const SizedBox(height: 10),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20.0),
+          child: Text(
+            'Sometimes there might be issues because of free deployment of the socket. Please try again.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
+            ),
+          ),
+        ),
+      ],
     ],
   );
 }
